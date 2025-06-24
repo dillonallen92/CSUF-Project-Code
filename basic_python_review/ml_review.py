@@ -28,10 +28,16 @@ def create_dataset(series, lookback = 50):
     X.append(series[i:i+lookback])
     y.append(series[i+1:i+lookback+1])
   
-  return torch.tensor(X), torch.tensor(y)
+  return torch.tensor(X, dtype=torch.float32), torch.tensor(y, dtype=torch.float32)
 
-X_data, y_data = create_dataset(y, lookback=50)
-print(f"Shapes: X: {X_data.shape}, y: {y_data.shape}")
+train_frac = .70
+train_idx = int(len(y)*train_frac)
+X_train, y_train = create_dataset(y[:train_idx], lookback=50)
+X_test, y_test   = create_dataset(y[train_idx:], lookback = 50)
+print(f"Train Shape: X: {X_train.shape}, y: {y_train.shape}\nTest Shape: X: {X_test.shape}, y: {y_test.shape}")
 
 class SineAnalyzer(nn.Module):
-  pass 
+  
+  def __init__(self, input_size, hidden_size, num_layers):
+    pass
+
