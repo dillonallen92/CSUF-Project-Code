@@ -73,7 +73,7 @@ class Trainer:
       
       return vf_pred, vf_true
   
-  def visualize_results(self, true, pred):
+  def visualize_results(self, true, pred, county_name=""):
     """
     Function to visualize the prediction vs true (test) vector
 
@@ -83,8 +83,8 @@ class Trainer:
     """
     plt.figure(figsize=(12, 6))
     plt.plot(true, label="True Values")
-    plt.plot(pred, label = "Predicted Values", linestyle="--")
-    plt.title("LSTM True vs Predicted Valley Fever Case Rates")
+    plt.plot(pred[1:], label = "Predicted Values", linestyle="--")
+    plt.title(f"{county_name} LSTM True vs Predicted Valley Fever Case Rates")
     plt.xlabel("Months")
     plt.ylabel("Case Rates")
     plt.legend()

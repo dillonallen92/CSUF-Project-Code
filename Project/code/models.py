@@ -10,3 +10,7 @@ class LSTM(nn.Module):
     out, _ = self.lstm(x)
     last_out = out[:,-1,:]
     return self.linear(last_out)
+
+class TransformerModel(nn.Module):
+  def __init__(self, input_size):
+    pass
