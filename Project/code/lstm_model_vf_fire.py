@@ -108,14 +108,35 @@ class LSTM(nn.Module):
 
 # Creating a Trainer Class to contain Training/Testing/Visualizing
 class Trainer:
-  def __init__(self, model, criterion, optimizer, scaler, lookback):
+  """
+  Trainer Class: A class that contains the training, testing, and visualization functions.
+  """
+  def __init__(self, model, criterion, optimizer, scaler):
+    """
+    Initialize the class. Takes in a model, crtierion for loss, optimizer, scaler.
+    
+    Inputs:
+      - Model: Neural Network model
+      - Criterion: Loss function (Typically MSELoss for time series, may look into more)
+      - Optimizer: Optimizer with learning rate added. Typically using Adam
+      - Scaler: MinMaxScaler scaler value, used for inverse transform to get actual data back
+    """
     self.model     = model 
     self.criterion = criterion 
     self.optimizer = optimizer
-    self.scaler    = scaler 
-    self.lookback  = lookback
+    self.scaler    = scaler
   
   def train(self, X_train, y_train, X_test, y_test, epochs):
+    """
+    Training Loop Function
+
+    Inputs:
+      - X_train: Training matrix X
+      - y_train: training target vector y
+      - X_test: Test matrix X
+      - y_test: Target vector y
+      - epochs: Number of Epochs to train
+    """
     for epoch in range(epochs):
       self.model.train()
       output = self.model(X_train)
@@ -131,6 +152,17 @@ class Trainer:
         print(f"Epoch {epoch+1}/{epochs} - Training Loss {loss.item():.4f}, Testing Loss {val_loss.item():.4f}")
     
   def evaluate(self, X_test, y_test):
+      """
+      Evaluation Loop. Evaluates the model and generates predictions.
+
+      Inputs:
+        - X_test: Test matrix X
+        - y_test: Test target vector y
+      
+      Outputs:
+        - y_pred: predicted target vector from the model using X_test
+        - y_true: True target vector (y_test)
+      """
       self.model.eval()
       with torch.no_grad():
         preds = self.model(X_test).detach().numpy()
@@ -145,6 +177,13 @@ class Trainer:
       return vf_pred, vf_true
   
   def visualize_results(self, true, pred):
+    """
+    Function to visualize the prediction vs true (test) vector
+
+    Inputs:
+      - True: True data (test or validation target vector)
+      - Pred: Prediction data from the model evaluation function
+    """
     plt.figure(figsize=(12, 6))
     plt.plot(true, label="True Values")
     plt.plot(pred, label = "Predicted Values", linestyle="--")
