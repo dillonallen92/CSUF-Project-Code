@@ -94,9 +94,13 @@ def prep_data(data, data_col_labels, split_frac, lookback, b_scaler=True):
   return X_train, y_train, X_test, y_test
 
 # TODO: LSTM Class
+class LSTM(nn.Module):
+  pass
+
 
 # TODO: Results Plotting Function
-
+def visualize_results(data):
+  pass
 
 if __name__ == "__main__":  
   source_column_labels = ['Fire Incident Count', 'VF Case Count']
