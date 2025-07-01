@@ -210,6 +210,7 @@ def main():
   X_train, y_train, X_test, y_test, scaler = prep_data(vf_fire_data, source_column_labels, 
                                                        split_frac, lookback, b_scaler=True)
   
+  # Able to be swapped out with other models (I hope)
   model     = LSTM(input_size, hidden_size, num_layers)
   criterion = nn.MSELoss()
   optimizer = optim.Adam(model.parameters(), lr = learning_rate)  
