@@ -93,6 +93,9 @@ def prep_data(data, data_col_labels, split_frac, lookback, b_scaler=True):
   # Return the data
   return X_train, y_train, X_test, y_test
 
+# TODO: LSTM Class
+
+# TODO: Results Plotting Function
 
 
 if __name__ == "__main__":  
@@ -103,4 +106,5 @@ if __name__ == "__main__":
                                                split_frac = split_frac, lookback = lookback, 
                                                b_scaler = True)
 
-  print(f"X_train size: {X_train.shape}")
+
+  # TODO: Create the LSTM, feed data into it, plot results
