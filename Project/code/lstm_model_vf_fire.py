@@ -96,9 +96,17 @@ def prep_data(data, data_col_labels, split_frac, lookback, b_scaler=True):
   else:
     return X_train, y_train, X_test, y_test
 
-# TODO: LSTM Class
+# First pass of LSTM Class
 class LSTM(nn.Module):
-  pass
+  def __init__(self, input_size, hidden_size, num_layers = 1):
+    super().__init__()
+    self.lstm = nn.LSTM(input_size, hidden_size, num_layers, batch_first = True)
+    self.linear = nn.Linear(hidden_size, 1) # single output (predicting VF case rate)
+  
+  def forward(self, x):
+    out, _ = self.lstm(x)
+    last_out = out[:,-1,:]
+    return self.linear(last_out)
 
 
 # TODO: Results Plotting Function
@@ -106,12 +114,97 @@ def visualize_results(data):
   pass
 
 if __name__ == "__main__":  
+  print("Valley Fever Prediction LSTM")
+  ########################
+  #     Input Values    #
+  #######################
   source_column_labels = ['Fire Incident Count', 'VF Case Count']
-  split_frac = .70
-  lookback   = 4
-  X_train, y_train, X_test, y_test = prep_data(vf_fire_data, source_column_labels, 
+  split_frac           = .85
+  lookback             = 9
+  input_size           = 2
+  hidden_size          = 64
+  num_layers           = 1
+  learning_rate        = 0.001
+  epochs               = 300
+
+  ########################
+  #   Dataset Creation   #
+  ########################
+  print("Creating Training and Testing Data...")
+  X_train, y_train, X_test, y_test, scaler = prep_data(vf_fire_data, source_column_labels, 
                                                split_frac = split_frac, lookback = lookback, 
                                                b_scaler = True)
 
 
-  # TODO: Create the LSTM, feed data into it, plot results
+  #Create the LSTM, feed data into it, plot results
+  # On first pass, do everything inside main... will refactor into functions/classes
+
+  #######################
+  #   Model Creation   #
+  ######################
+  print("Create the model...")
+  model = LSTM(input_size=input_size, hidden_size = hidden_size, num_layers = num_layers)
+  criterion = nn.MSELoss()
+  optimizer = optim.Adam(model.parameters(), lr=learning_rate)
+
+  ######################
+  #   Model Training   #
+  ######################
+  print("Train the model...")
+  
+  for epoch in range(epochs):
+    model.train()
+    output = model(X_train)
+    loss   = criterion(output, y_train)
+
+    optimizer.zero_grad()
+    loss.backward()
+    optimizer.step()
+
+    if epoch % 10 == 0:
+      model.eval()
+      val_loss = criterion(model(X_test), y_test)
+      print(f"Epoch: {epoch + 1}/{epochs}- Train Loss: {loss.item():.4f}, Test Loss: {val_loss.item():.4f}")
+  
+  ##############################
+  #   Generating Predictions   #
+  ##############################
+  print("generating predictions...")
+  model.eval()
+  pred_scaled = model(X_test).detach().numpy()
+
+  # Reconstruct full array to inverse transform
+  dummy = np.zeros((len(pred_scaled), 2))
+  dummy[:, 1] = pred_scaled[:, 0]  # VF case prediction in 2nd column
+  vf_pred = scaler.inverse_transform(dummy)[:, 1]  # inverse only VF
+
+  # Compare to true values
+  true_scaled = y_test.numpy()
+  dummy[:, 1] = true_scaled[:, 0]
+  vf_true = scaler.inverse_transform(dummy)[:, 1]
+
+  print("Predicted (scaled):", pred_scaled[:5])
+  print("Predicted (inverted):", vf_pred[:5])
+  print("True (inverted):", vf_true[:5])
+
+  ########################
+  #   Plotting Results   #
+  ########################
+  print("plotting results...")
+  # Create a figure
+  plt.figure(figsize=(12, 6))
+
+  # Plot true VF case counts
+  plt.plot(vf_true, label="True VF Cases", linewidth=2)
+
+  # Plot predicted VF case counts
+  plt.plot(vf_pred, label="Predicted VF Cases", linestyle="--", linewidth=2)
+
+  # Add labels and legend
+  plt.title("Predicted vs True Valley Fever Case Counts (Test Set)", fontsize=14)
+  plt.xlabel("Time (Months)", fontsize=12)
+  plt.ylabel("VF Case Count", fontsize=12)
+  plt.legend()
+  plt.grid(True)
+  plt.tight_layout()
+  plt.show()
