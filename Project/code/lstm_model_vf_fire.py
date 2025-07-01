@@ -196,7 +196,7 @@ class Trainer:
     plt.show()
 
 def main():
-  # data import
+  # data import and setup parameters
   vf_fire_data = pd.read_csv("Project/data/fire_vs_vf.csv")
   source_column_labels = ['Fire Incident Count', 'VF Case Count']
   split_frac           = .85
@@ -214,8 +214,7 @@ def main():
   criterion = nn.MSELoss()
   optimizer = optim.Adam(model.parameters(), lr = learning_rate)  
 
-  trainer = Trainer(model = model, criterion = criterion, optimizer = optimizer, 
-                    scaler = scaler, lookback= lookback)
+  trainer = Trainer(model = model, criterion = criterion, optimizer = optimizer, scaler = scaler)
   
   trainer.train(X_train, y_train, X_test, y_test, epochs)
   y_pred, y_true = trainer.evaluate(X_test, y_test)
