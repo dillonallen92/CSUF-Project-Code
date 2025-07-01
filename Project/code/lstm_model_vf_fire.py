@@ -91,7 +91,10 @@ def prep_data(data, data_col_labels, split_frac, lookback, b_scaler=True):
   X_test, y_test   = transform_tensor(X_test, y_test)
 
   # Return the data
-  return X_train, y_train, X_test, y_test
+  if b_scaler:
+    return X_train, y_train, X_test, y_test, scaler
+  else:
+    return X_train, y_train, X_test, y_test
 
 # TODO: LSTM Class
 class LSTM(nn.Module):
