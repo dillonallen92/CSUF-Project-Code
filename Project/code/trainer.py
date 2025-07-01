@@ -63,7 +63,8 @@ class Trainer:
       with torch.no_grad():
         preds = self.model(X_test).detach().numpy()
 
-        dummy = np.zeros((len(preds), 2))
+        n_features = self.scaler.n_features_in_
+        dummy = np.zeros((len(preds), n_features))
         dummy[:, 1] = preds[:, 0]
         vf_pred = self.scaler.inverse_transform(dummy)[:,1]
 

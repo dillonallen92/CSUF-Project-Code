@@ -7,6 +7,7 @@ from data_utils import prep_data
 
 def main():
   # data import and setup parameters
+  # Change these values here, everything else should work without user input
   vf_fire_data = pd.read_csv("Project/data/fire_vs_vf.csv")
   source_column_labels = ['Fire Incident Count', 'VF Case Count']
   split_frac           = .85
