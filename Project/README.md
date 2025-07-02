@@ -1,6 +1,6 @@
 # 🌡️ Valley Fever & Wildfire Incidents: Time Series Forecasting with LSTM
 
-This project explores the potential relationship between **wildfire incidents** and **Valley Fever (Coccidioidomycosis)** case rates using a time series modeling pipeline built in **PyTorch**. The goal is to predict future VF case counts using historical trends, with fire data as a possible covariate.
+This project explores the potential relationship between **wildfire incidents** and **Valley Fever (Coccidioidomycosis)** case rates using a time series modeling pipeline built in **PyTorch**. The goal is to predict future VF case counts using historical trends.
 
 ---
 
