@@ -73,7 +73,7 @@ class Trainer:
       
       return vf_pred, vf_true
   
-  def visualize_results(self, true, pred, county_name=""):
+  def visualize_results(self, true, pred, county_name="", show_plot = True, save_fig = False):
     """
     Function to visualize the prediction vs true (test) vector
 
@@ -81,13 +81,27 @@ class Trainer:
       - True: True data (test or validation target vector)
       - Pred: Prediction data from the model evaluation function
     """
-    plt.figure(figsize=(12, 6))
-    plt.plot(true, label="True Values")
-    plt.plot(pred[1:], label = "Predicted Values", linestyle="--")
-    plt.title(f"{county_name} LSTM True vs Predicted Valley Fever Case Rates")
-    plt.xlabel("Months")
-    plt.ylabel("Case Rates")
-    plt.legend()
-    plt.grid(True)
-    plt.tight_layout()
-    plt.show()
+    if show_plot:
+      plt.figure(figsize=(12, 6))
+      plt.plot(true, label="True Values")
+      plt.plot(pred[1:], label = "Predicted Values", linestyle="--")
+      plt.title(f"{county_name} LSTM True vs Predicted Valley Fever Case Rates")
+      plt.xlabel("Months")
+      plt.ylabel("Case Rates")
+      plt.legend()
+      plt.grid(True)
+      plt.tight_layout()
+      plt.show()
+    
+    if save_fig:
+      plt.figure(figsize=(12, 6))
+      plt.plot(true, label="True Values")
+      plt.plot(pred[1:], label = "Predicted Values", linestyle="--")
+      plt.title(f"{county_name} LSTM True vs Predicted Valley Fever Case Rates")
+      plt.xlabel("Months")
+      plt.ylabel("Case Rates")
+      plt.legend()
+      plt.grid(True)
+      plt.tight_layout()
+      img_str = f"Project/plots/lstm/{county_name}_plot_lstm.png"
+      plt.savefig(img_str)
