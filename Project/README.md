@@ -26,7 +26,7 @@ This project explores the potential relationship between **wildfire incidents** 
 Edit `main.py` to set modeling options and pick the county:
 
 ```python
-county        = "Tulare"      # Any valid CA county present in both datasets
+county_name   = "Tulare"      # Any valid CA county present in both datasets
 lookback      = 12            # Number of months to look back
 hidden_size   = 64
 num_layers    = 2
