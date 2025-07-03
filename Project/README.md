@@ -1,6 +1,6 @@
-# 🌡️ Valley Fever & Wildfire Incidents: Time Series Forecasting with LSTM
+# 🌡️ Valley Fever & Wildfire Incidents: Time Series Forecasting with LSTM and Transformer Models
 
-This project explores the potential relationship between **wildfire incidents** and **Valley Fever (Coccidioidomycosis)** case rates using a time series modeling pipeline built in **PyTorch**. The goal is to predict future VF case counts using historical trends.
+This project explores the potential relationship between **wildfire incidents** and **Valley Fever (Coccidioidomycosis)** case rates using a time series modeling pipeline built in **PyTorch**. The goal is to predict future VF case counts using historical trends. The models used in this codebase will be focused around LSTM models and Transformer models like Vanilla Transformer, Informer, Temporal-Fusion Transformer, and potential complementary models like DLinear.
 
 ---
 
