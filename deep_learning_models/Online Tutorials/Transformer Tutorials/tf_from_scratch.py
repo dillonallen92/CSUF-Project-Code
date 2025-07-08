@@ -76,8 +76,21 @@ class PositionalEncoding(nn.Module):
   def forward(self, x):
     return x + self.pe[:, :x.size(1)]
 
+class EncoderLayer(nn.Module):
+  def __init__(self, d_model, num_heads, d_ff, dropout):
+    super().__init__()
+    self.self_attention = MultiHeadAttention(d_model=d_model, num_heads=num_heads)
+    self.feedforward    = PositionWiseFeedForward(d_model= d_model, d_ff = d_ff)
+    self.norm1          = nn.LayerNorm(d_model)
+    self.norm2          = nn.Layer(d_model)
+    self.dropout        = nn.Dropout(dropout)
 
-
+  def forward(self, x, mask):
+    attention_output   = self.self_attention(x, x, x, mask)
+    x                  = self.norm1(x + self.dropout(attention_output))
+    feedforward_output = self.feedforward(x)
+    x                  = self.norm2(x + self.dropout(feedforward_output))
+    return x
 
 
 
