@@ -82,7 +82,7 @@ class EncoderLayer(nn.Module):
     self.self_attention = MultiHeadAttention(d_model=d_model, num_heads=num_heads)
     self.feedforward    = PositionWiseFeedForward(d_model= d_model, d_ff = d_ff)
     self.norm1          = nn.LayerNorm(d_model)
-    self.norm2          = nn.Layer(d_model)
+    self.norm2          = nn.LayerNorm(d_model)
     self.dropout        = nn.Dropout(dropout)
 
   def forward(self, x, mask):
@@ -110,6 +110,7 @@ class DecoderLayer(nn.Module):
     x                  = self.norm2(x + self.dropout(attention_output))
     feedforward_output = self.feedforward(x)
     x                  = self.norm3(x + self.dropout(feedforward_output))
+    return x
 
 # Finally, we can make the transformer model
 class Transformer(nn.Module):
@@ -119,8 +120,8 @@ class Transformer(nn.Module):
     self.decoder_embedding   = nn.Embedding(tgt_vocab_size, d_model)
     self.positional_encoding = PositionalEncoding(d_model, max_seq_length)
 
-    self.encoding_layers = nn.ModuleList([EncoderLayer(d_model, num_heads, d_ff, dropout) for _ in range(num_layers)])
-    self.decoding_layers = nn.ModuleList([DecoderLayer(d_model, num_heads, d_ff, dropout) for _ in range(num_layers)])
+    self.encoder_layers = nn.ModuleList([EncoderLayer(d_model, num_heads, d_ff, dropout) for _ in range(num_layers)])
+    self.decoder_layers = nn.ModuleList([DecoderLayer(d_model, num_heads, d_ff, dropout) for _ in range(num_layers)])
 
     self.fully_connected_layer = nn.Linear(d_model, tgt_vocab_size)
     self.dropout = nn.Dropout(dropout)
@@ -143,10 +144,38 @@ class Transformer(nn.Module):
       enc_output = enc_layer(enc_output, src_mask)
     
     dec_output = tgt_embedded
-    for dec_layer in self.decoding_layers:
+    for dec_layer in self.decoder_layers:
       dec_output = dec_layer(dec_output, enc_output, src_mask, tgt_mask)
     
     output = self.fully_connected_layer(dec_output)
     return output
     
+# setting up the parameters and model 
+src_vocab_size = 5000
+tgt_vocab_size = 5000
+d_model = 512
+num_heads = 8
+num_layers = 6
+d_ff = 2048
+max_seq_length = 100
+dropout = 0.1
 
+transformer = Transformer(src_vocab_size, tgt_vocab_size, d_model, num_heads, num_layers, d_ff, max_seq_length, dropout)
+
+# Generate random sample data
+src_data = torch.randint(1, src_vocab_size, (64, max_seq_length))  # (batch_size, seq_length)
+tgt_data = torch.randint(1, tgt_vocab_size, (64, max_seq_length))  # (batch_size, seq_length)
+
+# Train the model
+criterion = nn.CrossEntropyLoss(ignore_index=0)
+optimizer = optim.Adam(transformer.parameters(), lr=0.0001, betas=(0.9, 0.98), eps=1e-9)
+
+transformer.train()
+
+for epoch in range(100):
+    optimizer.zero_grad()
+    output = transformer(src_data, tgt_data[:, :-1])
+    loss = criterion(output.contiguous().view(-1, tgt_vocab_size), tgt_data[:, 1:].contiguous().view(-1))
+    loss.backward()
+    optimizer.step()
+    print(f"Epoch: {epoch+1}, Loss: {loss.item()}")
