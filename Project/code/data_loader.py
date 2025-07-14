@@ -43,3 +43,6 @@ def combine_vf_wildfire_data(fire_path: str, vf_cases_path: str, county_name: st
     combined = pd.merge(fire_trim, vf_trim, on="Month", how="inner")
 
     return combined
+
+def combine_vf_wildfire_pop_data(vf_path: str, fire_path: str, popdata_path:str, county_name:str) -> pd.DataFrame:
+    vf_fire_combined = combine_vf_wildfire_data(fire_path, vf_path, county_name)
