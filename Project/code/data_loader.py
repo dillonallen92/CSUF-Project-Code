@@ -103,6 +103,32 @@ def combine_pop_datasets(pop_path1: str, pop_path2: str, overlapAt2010: bool = T
     combined_pop_df = pop1_df.join(pop2_df, how='inner')
     return combined_pop_df
 
+def grab_specific_county_data(df: pd.Dataframe, county_name: str, start_year: str, end_year: str) -> pd.Series:
+    """
+    Grab_Specific_County_Data: This function reports back the population data 
+    for a given county over a specified year span (from 2000 to 2020 max)
+    
+    Inputs:
+        - df: Dataframe of the (combined, hopefully) population datasets. 
+              Doesn't actually need to be, to be honest
+        - county_name: Name of the county to pull data for
+        - start_year: starting year for the query, as a string
+        - end_year: ending year of the query, as a string
+    
+    Outputs:
+        - queried_data: pd.Series object with the population data for 
+                        that given county from the specified year range
+    """
+
+    year_cols = df.columns.astype(str)
+    if start_year not in year_cols or end_year not in year_cols:
+        raise ValueError(f"Start year {start_year} or End year {end_year} are out of bounds")
+    
+    if county_name not in df.index:
+        raise ValueError(f"County Name {county_name} not in Population Data")
+    
+    return df.loc[county_name, start_year:end_year]
+
 def combine_vf_wildfire_pop_data(vf_path: str, fire_path: str, popdata_path:str, county_name:str) -> pd.DataFrame:
     vf_fire_combined = combine_vf_wildfire_data(fire_path, vf_path, county_name)
 
