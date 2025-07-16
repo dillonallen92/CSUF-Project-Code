@@ -129,15 +129,54 @@ def grab_specific_county_data(df: pd.DataFrame, county_name: str, start_year: st
     
     return df.loc[county_name, start_year:end_year]
 
-def combine_vf_wildfire_pop_data(vf_path: str, fire_path: str, popdata_path1: str, popdata_path2: str, county_name:str) -> pd.DataFrame:
-    vf_fire_combined         = combine_vf_wildfire_data(fire_path, vf_path, county_name)
-    pop_data_combined        = combine_pop_datasets(pop_path1=popdata_path1, pop_path2=popdata_path2, 
-                                                    overlapAt2010=True)
-    county_specific_pop_data = grab_specific_county_data(pop_data_combined, county_name=county_name, 
-                                                         start_year="2006", end_year="2015")
+def combine_vf_fire_pop_data(pop1_path: str, pop2_path: str, vf_cases_path: str, wildfire_path: str,
+                             county: str, start_year: str = "2006", end_year: str = "2015") -> pd.DataFrame:
+    """
+    Combine_VF_Fire_Pop_Data: Combines VF case data, wildfire data, and annual population data for a given county
+    into a single monthly DataFrame with aligned population values.
+
+    Inputs:
+        - pop1_path (str): Path to 2000–2010 population CSV
+        - pop2_path (str): Path to 2010–2020 population CSV
+        - vf_cases_path (str): Path to VF case data CSV
+        - wildfire_path (str): Path to wildfire incident data CSV
+        - county (str): County name, e.g. "Fresno"
+        - start_year (str): Starting year as string, default "2006"
+        - end_year (str): Ending year as string, default "2015"
+
+    Output:
+        vf_fire_pop_df (pd.DataFrame): Combined monthly VF, wildfire, and population dataset into a pandas DataFrame
+    """
+
+    # Format full county name for population match
+    county_name = f"{county} County"
+
+    # Step 1: Combine VF + wildfire data
+    vf_fire_df = combine_vf_wildfire_data(wildfire_path, vf_cases_path, county)
+    vf_fire_df = vf_fire_df.copy()
+    vf_fire_df = vf_fire_df.set_index('Month')
+    vf_fire_df.index = pd.to_datetime(vf_fire_df.index)
+
+    # Step 2: Combine and extract population data
+    pop_combined = combine_pop_datasets(pop1_path, pop2_path, True)
+    pop_series = grab_specific_county_data(pop_combined, county_name, start_year, end_year)
+    pop_series = pop_series.str.replace(",", "").astype(int)
+    pop_series.index = pop_series.index.astype(int)
+
+    # Step 3: Map population to monthly data
+    vf_fire_df["Population"] = vf_fire_df.index.year.map(pop_series)
+
+    # Step 4: Sanity check for missing population values
+    if vf_fire_df["Population"].isnull().any():
+        missing_years = vf_fire_df[vf_fire_df["Population"].isnull()].index.year.unique()
+        raise ValueError(f"Missing population data for years: {missing_years.tolist()}")
+
+    vf_fire_pop_df = vf_fire_df.copy()
+    return vf_fire_pop_df
 
 
 if __name__ == "__main__":
+    """
     print(" --- Testing Data Loader Utilities ---")
     pop2000_2010_path = "Project/data/cali_county_pop_2000_2010.csv"
     pop2010_2020_path = 'Project/data/cali_county_pop_2010_2020.csv'
@@ -148,6 +187,24 @@ if __name__ == "__main__":
     print(" --- Test Combined Pop Dataframes --- ")
     combined_df = combine_pop_datasets(pop_path1=pop2000_2010_path, pop_path2=pop2010_2020_path, overlapAt2010=True)
     print(combined_df.head())
-    print(combined_df.loc["Fresno County"])
+    print(combined_df.loc["Fresno County"]) """
+
+    # Import Data
+    pop2000_2010_path = "Project/data/cali_county_pop_2000_2010.csv"
+    pop2010_2020_path = 'Project/data/cali_county_pop_2010_2020.csv'
+    vf_cases_path     = 'Project/data/coccidioidomycosis_m2000_2015_v0.1.csv'
+    wildfire_path     = 'Project/data/CAL_FIRE_Wildland_PublicReport_2000to2018.csv'
+    county_name       = "Fresno"
+    start_year        = "2006"
+    end_year          = "2015"
+
+    print(" --- Testing Total Combination Dataset")
+    comb_dataset = combine_vf_fire_pop_data(pop2000_2010_path, pop2010_2020_path,
+                                            vf_cases_path, wildfire_path, county_name,
+                                              start_year, end_year)
+    print(comb_dataset.tail())
+    
+
+
     
 
