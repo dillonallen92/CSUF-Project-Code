@@ -130,7 +130,8 @@ def grab_specific_county_data(df: pd.DataFrame, county_name: str, start_year: st
     return df.loc[county_name, start_year:end_year]
 
 def combine_vf_fire_pop_data(pop1_path: str, pop2_path: str, vf_cases_path: str, wildfire_path: str,
-                             county: str, start_year: str = "2006", end_year: str = "2015") -> pd.DataFrame:
+                             county: str, start_year: str = "2006", end_year: str = "2015", 
+                             bInterp: bool = False) -> pd.DataFrame:
     """
     Combine_VF_Fire_Pop_Data: Combines VF case data, wildfire data, and annual population data for a given county
     into a single monthly DataFrame with aligned population values.
@@ -143,6 +144,7 @@ def combine_vf_fire_pop_data(pop1_path: str, pop2_path: str, vf_cases_path: str,
         - county (str): County name, e.g. "Fresno"
         - start_year (str): Starting year as string, default "2006"
         - end_year (str): Ending year as string, default "2015"
+        - bInterp (bool): Boolean flag for population interpolation capability
 
     Output:
         vf_fire_pop_df (pd.DataFrame): Combined monthly VF, wildfire, and population dataset into a pandas DataFrame
@@ -164,7 +166,8 @@ def combine_vf_fire_pop_data(pop1_path: str, pop2_path: str, vf_cases_path: str,
     pop_series.index = pop_series.index.astype(int)
 
     # Step 3: Map population to monthly data
-    vf_fire_df["Population"] = vf_fire_df.index.year.map(pop_series)
+    if not bInterp:
+        vf_fire_df["Population"] = vf_fire_df.index.year.map(pop_series)
 
     # Step 4: Sanity check for missing population values
     if vf_fire_df["Population"].isnull().any():
@@ -202,8 +205,8 @@ if __name__ == "__main__":
     comb_dataset = combine_vf_fire_pop_data(pop2000_2010_path, pop2010_2020_path,
                                             vf_cases_path, wildfire_path, county_name,
                                               start_year, end_year)
-    print(comb_dataset.tail())
-    
+    print(comb_dataset)
+
 
 
     
