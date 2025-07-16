@@ -1,5 +1,5 @@
 import torch
 import torch.nn as nn 
 
-class PositionalFeedForward(nn.Module):
+class PositionwiseFeedForward(nn.Module):
   pass 
