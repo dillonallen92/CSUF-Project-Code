@@ -1,4 +1,7 @@
+import torch
 import torch.nn as nn
+from transformer_modules.encoder import TransformerEncoder
+from transformer_modules.positional import PositionalEncoding
 
 class LSTM(nn.Module):
   def __init__(self, input_size, hidden_size, dropout, num_layers = 1):

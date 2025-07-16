@@ -1,6 +1,7 @@
 import torch 
 import numpy as np
 import matplotlib.pyplot as plt 
+from datetime import date
 
 # Creating a Trainer Class to contain Training/Testing/Visualizing
 class Trainer:
@@ -73,7 +74,7 @@ class Trainer:
       
       return vf_pred, vf_true
   
-  def visualize_results(self, true, pred, county_name="", show_plot = True, save_fig = False):
+  def visualize_results(self, true, pred, county_name="", model_type = "LSTM", title_text = "", show_plot = True, save_fig = False):
     """
     Function to visualize the prediction vs true (test) vector
 
@@ -85,7 +86,7 @@ class Trainer:
       plt.figure(figsize=(12, 6))
       plt.plot(true, label="True Values")
       plt.plot(pred[1:], label = "Predicted Values", linestyle="--")
-      plt.title(f"{county_name} LSTM True vs Predicted Valley Fever Case Rates")
+      plt.title(f"{county_name} {model_type} {title_text} True vs Predicted Valley Fever Case Rates")
       plt.xlabel("Months")
       plt.ylabel("Case Rates")
       plt.legend()
@@ -97,11 +98,11 @@ class Trainer:
       plt.figure(figsize=(12, 6))
       plt.plot(true, label="True Values")
       plt.plot(pred[1:], label = "Predicted Values", linestyle="--")
-      plt.title(f"{county_name} LSTM True vs Predicted Valley Fever Case Rates")
+      plt.title(f"{county_name} {model_type} {title_text} LSTM True vs Predicted Valley Fever Case Rates")
       plt.xlabel("Months")
       plt.ylabel("Case Rates")
       plt.legend()
       plt.grid(True)
       plt.tight_layout()
-      img_str = f"Project/plots/lstm/{county_name}_plot_lstm.png"
+      img_str = f"Project/plots/{model_type}/{county_name}_{title_text}_plot_{date.today()}.png"
       plt.savefig(img_str)
