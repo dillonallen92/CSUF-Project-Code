@@ -103,7 +103,7 @@ def combine_pop_datasets(pop_path1: str, pop_path2: str, overlapAt2010: bool = T
     combined_pop_df = pop1_df.join(pop2_df, how='inner')
     return combined_pop_df
 
-def grab_specific_county_data(df: pd.Dataframe, county_name: str, start_year: str, end_year: str) -> pd.Series:
+def grab_specific_county_data(df: pd.DataFrame, county_name: str, start_year: str, end_year: str) -> pd.Series:
     """
     Grab_Specific_County_Data: This function reports back the population data 
     for a given county over a specified year span (from 2000 to 2020 max)
@@ -129,8 +129,13 @@ def grab_specific_county_data(df: pd.Dataframe, county_name: str, start_year: st
     
     return df.loc[county_name, start_year:end_year]
 
-def combine_vf_wildfire_pop_data(vf_path: str, fire_path: str, popdata_path:str, county_name:str) -> pd.DataFrame:
-    vf_fire_combined = combine_vf_wildfire_data(fire_path, vf_path, county_name)
+def combine_vf_wildfire_pop_data(vf_path: str, fire_path: str, popdata_path1: str, popdata_path2: str, county_name:str) -> pd.DataFrame:
+    vf_fire_combined         = combine_vf_wildfire_data(fire_path, vf_path, county_name)
+    pop_data_combined        = combine_pop_datasets(pop_path1=popdata_path1, pop_path2=popdata_path2, 
+                                                    overlapAt2010=True)
+    county_specific_pop_data = grab_specific_county_data(pop_data_combined, county_name=county_name, 
+                                                         start_year="2006", end_year="2015")
+
 
 if __name__ == "__main__":
     print(" --- Testing Data Loader Utilities ---")
