@@ -129,6 +129,33 @@ def grab_specific_county_data(df: pd.DataFrame, county_name: str, start_year: st
     
     return df.loc[county_name, start_year:end_year]
 
+def pop_copy_monthly(df: pd.DataFrame, pop_series: pd.Series, col_name:str) -> pd.DataFrame:
+    """
+    Pop_Copy_Monthly: This function takes in a dataframe and copies the population
+    data from the pop_series (a yearly value) for every month value in the dataframe.
+
+    Inputs:
+        - df (pd.DataFrame): Pandas DataFrame of data (ex: wildfire and virus data).
+                             This data is typically reported (and indexed) on a monthly
+                             scale.
+        - pop_series (pd.Series): Population data in a pd.Series structure. 
+                                  Each index in the series represents a single year
+        - col_name (string): string value of the column name we want to copy
+    
+    Outputs:
+        - combined_pop_monthly_data (pd.DataFrame): Pandas dataframe containing the 
+                                                    population data copied onto a monthly basis.
+    """    
+    df[col_name] = df.index.year.map(pop_series)
+
+    # Step 4: Sanity check for missing population values
+    if df[col_name].isnull().any():
+        missing_years = df[df[col_name].isnull()].index.year.unique()
+        raise ValueError(f"Missing {col_name} data for years: {missing_years.tolist()}")
+
+    combined_pop_monthly_data = df.copy()
+    return combined_pop_monthly_data 
+
 def combine_vf_fire_pop_data(pop1_path: str, pop2_path: str, vf_cases_path: str, wildfire_path: str,
                              county: str, start_year: str = "2006", end_year: str = "2015", 
                              bInterp: bool = False) -> pd.DataFrame:
@@ -167,14 +194,8 @@ def combine_vf_fire_pop_data(pop1_path: str, pop2_path: str, vf_cases_path: str,
 
     # Step 3: Map population to monthly data
     if not bInterp:
-        vf_fire_df["Population"] = vf_fire_df.index.year.map(pop_series)
-
-    # Step 4: Sanity check for missing population values
-    if vf_fire_df["Population"].isnull().any():
-        missing_years = vf_fire_df[vf_fire_df["Population"].isnull()].index.year.unique()
-        raise ValueError(f"Missing population data for years: {missing_years.tolist()}")
-
-    vf_fire_pop_df = vf_fire_df.copy()
+        vf_fire_pop_df = pop_copy_monthly(vf_fire_df, pop_series, "Population")
+    
     return vf_fire_pop_df
 
 
