@@ -226,4 +226,4 @@ if __name__ == "__main__":
     comb_dataset = combine_vf_fire_pop_data(pop2000_2010_path, pop2010_2020_path,
                                             vf_cases_path, wildfire_path, county_name,
                                               start_year, end_year)
-    print(comb_dataset)
+    print(comb_dataset.head())
