@@ -227,8 +227,3 @@ if __name__ == "__main__":
                                             vf_cases_path, wildfire_path, county_name,
                                               start_year, end_year)
     print(comb_dataset)
-
-
-
-    
-
