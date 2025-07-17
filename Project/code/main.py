@@ -16,7 +16,7 @@ def main():
   pop2_data_path       = "Project/data/cali_county_pop_2010_2020.csv"
   start_year           = "2006"
   end_year             = "2015"
-  county_name          = "Fresno"
+  county_name          = "Tulare"
   source_column_labels = ['Fire Incident Count', 'VF Case Count', 'Population']
   split_frac           = .85
   lookback             = 6
@@ -28,12 +28,15 @@ def main():
   epochs               = 300
   weight_decay         = 1e-5
   title_text           = "(Population Added)"
-  model_flag           = "lstm"
+  model_flag           = "transformer"
 
   # Transformer Properties
-  d_model         = 32
-  nheads          = 2
-  dim_feedforward = 64
+  if model_flag == "transformer":
+    d_model         = 32
+    nheads          = 2
+    dim_feedforward = 64
+    num_layers      = 1
+    dropout         = 0.2
 
   wf_vf_pop_df = combine_vf_fire_pop_data(pop1_data_path, pop2_data_path, vf_data_path, fire_data_path, county_name,
                                           start_year, end_year, bInterp=False)
