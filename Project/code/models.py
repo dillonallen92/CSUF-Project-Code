@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 from transformer_modules.encoder import TransformerEncoder
 from transformer_modules.positional import PositionalEncoding
+from transformer_modules.attention import MultiHeadAttention
 
 class LSTM(nn.Module):
   def __init__(self, input_size, hidden_size, dropout, num_layers = 1):

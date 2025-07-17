@@ -1,11 +1,12 @@
 import pandas as pd 
 import torch.nn as nn 
 import torch.optim as optim 
-from models import LSTM
+from models import LSTM, TransformerModel
 from trainer import Trainer 
 from data_utils import prep_data
 from loss_functions import RMSELoss
 from data_loader import combine_vf_fire_pop_data
+from transformer_modules.attention import MultiHeadAttention
 
 def main():
 
@@ -15,7 +16,7 @@ def main():
   pop2_data_path       = "Project/data/cali_county_pop_2010_2020.csv"
   start_year           = "2006"
   end_year             = "2015"
-  county_name          = "Tulare"
+  county_name          = "Fresno"
   source_column_labels = ['Fire Incident Count', 'VF Case Count', 'Population']
   split_frac           = .85
   lookback             = 6
@@ -27,6 +28,12 @@ def main():
   epochs               = 300
   weight_decay         = 1e-5
   title_text           = "(Population Added)"
+  model_flag           = "lstm"
+
+  # Transformer Properties
+  d_model         = 32
+  nheads          = 2
+  dim_feedforward = 64
 
   wf_vf_pop_df = combine_vf_fire_pop_data(pop1_data_path, pop2_data_path, vf_data_path, fire_data_path, county_name,
                                           start_year, end_year, bInterp=False)
@@ -35,7 +42,14 @@ def main():
                                                         split_frac, lookback, b_scaler=True)
 
   # Able to be swapped out with other models (I hope)
-  model     = LSTM(input_size=input_size, hidden_size=hidden_size, num_layers=num_layers, dropout=dropout)
+  if model_flag == "lstm":
+    model     = LSTM(input_size=input_size, hidden_size=hidden_size, num_layers=num_layers, dropout=dropout)
+  elif model_flag == "transformer":
+    model = TransformerModel(input_size= input_size, d_model = d_model, nhead= nheads, num_layers = num_layers,
+                             dim_feedforward= dim_feedforward, dropout=dropout, attention_impl=MultiHeadAttention)
+  else:
+    raise NotImplementedError("Other Architectures besides LSTM and Transformer not implemented. " \
+                              "If this is a mistake, check your spelling in model_flag variable.")
   criterion = RMSELoss()
   optimizer = optim.Adam(model.parameters(), lr = learning_rate, weight_decay=weight_decay)  
 
@@ -43,7 +57,8 @@ def main():
   trainer.train(X_train, y_train, X_test, y_test, epochs)
 
   y_pred, y_true = trainer.evaluate(X_test, y_test)
-  trainer.visualize_results(y_true, y_pred, county_name, title_text = title_text, show_plot=True, save_fig = True)
+  trainer.visualize_results(y_true, y_pred, county_name, model_type = model_flag, 
+                            title_text = title_text, show_plot=True, save_fig = True)
 
 if __name__ == "__main__":
   main()
