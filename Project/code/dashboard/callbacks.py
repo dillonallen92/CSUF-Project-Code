@@ -20,7 +20,7 @@ def register_callbacks(app):
     Output('population-plot', 'figure'),
     Output('fire-plot', 'figure'),
     Output('vf-plot', 'figure'),
-    Input('plot-county-dropdown', 'value')
+    Input('county-dropdown', 'value')
     )
     def update_plot(county):
       try:

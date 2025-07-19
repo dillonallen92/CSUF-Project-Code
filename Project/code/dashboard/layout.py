@@ -3,9 +3,12 @@ from controls import county_dropdown, population_checklist, plot_county_dropdown
 from dash import html, dcc, dash_table
 
 layout = html.Div([
+  html.Div([
+  html.Label("Select County: "),
+  html.Div([
+  county_dropdown], style = {'marginLeft': '15px', 'width': '800px'})], style={'display':'flex', 'alignItems': 'center', 'marginBottom': '15px'}),
   dcc.Tabs([
     dcc.Tab(label='Explore Data Table', children = [
-      county_dropdown, 
       population_checklist,
       html.Br(),
       dash_table.DataTable(
@@ -27,10 +30,12 @@ layout = html.Div([
       )
     ]),
     dcc.Tab(label='Explore Data Plots', children=[
-      plot_county_dropdown,
       dcc.Graph(id='population-plot'),
       dcc.Graph(id='fire-plot'),
       dcc.Graph(id='vf-plot')
+    ]),
+    dcc.Tab(label = "Model Prediction", children = [
+      html.H1("Hello World")
     ])
   ])
 ])
