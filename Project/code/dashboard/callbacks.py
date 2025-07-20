@@ -30,7 +30,7 @@ def register_callbacks(app):
         print(df.head())
 
         plots = make_individual_timeseries(df)
-
+        
         return (
            plots.get('population'),
            plots.get('fire'),

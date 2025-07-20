@@ -1,4 +1,4 @@
-from controls import county_dropdown, population_checklist, plot_county_dropdown
+from controls import county_dropdown, population_checklist, plot_county_dropdown, select_model_dropdown
 
 from dash import html, dcc, dash_table
 
@@ -40,7 +40,10 @@ layout = html.Div([
       dcc.Graph(id='vf-plot')
     ]),
     dcc.Tab(label = "Model Prediction", children = [
-      html.H1("Hello World")
+      html.H1("Model Selection and Results"),
+      html.Div([
+        select_model_dropdown
+      ], style = {'marginTop' : '15px', 'marginBottom' : '15px'})
     ])
   ])
 ])
