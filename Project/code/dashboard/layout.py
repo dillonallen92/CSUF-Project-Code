@@ -4,12 +4,17 @@ from dash import html, dcc, dash_table
 
 layout = html.Div([
   html.Div([
+    html.H1("Valley Fever Project Dashboard")
+  ]),
+  html.Div([
   html.Label("Select County: "),
   html.Div([
-  county_dropdown], style = {'marginLeft': '15px', 'width': '800px'})], style={'display':'flex', 'alignItems': 'center', 'marginBottom': '15px'}),
+  county_dropdown], style = {'marginLeft': '15px', 'width': '800px'}), html.Div([])], style={'display':'flex', 'alignItems': 'center', 'marginBottom': '15px'}),
+  html.Div([
+    population_checklist], style={'marginBottom': '15px'}),
   dcc.Tabs([
     dcc.Tab(label='Explore Data Table', children = [
-      population_checklist,
+      # population_checklist,
       html.Br(),
       dash_table.DataTable(
           id='data-table',
