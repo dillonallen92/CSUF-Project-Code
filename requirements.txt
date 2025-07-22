@@ -1,3 +1,5 @@
+--only-binary=:all
+
 appnope==0.1.4
 asttokens==3.0.0
 blinker==1.9.0
