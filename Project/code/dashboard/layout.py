@@ -43,7 +43,8 @@ layout = html.Div([
       html.H1("Model Selection and Results"),
       html.Div([
         select_model_dropdown
-      ], style = {'marginTop' : '15px', 'marginBottom' : '15px'})
+      ], style = {'marginTop' : '15px', 'marginBottom' : '15px'}),
+      dcc.Graph(id='model-summary-plot')
     ])
   ])
 ])

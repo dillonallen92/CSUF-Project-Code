@@ -1,4 +1,5 @@
-from plotting import make_individual_timeseries
+from plotting import make_individual_timeseries, visualize_model_results
+from model_interface import create_execute_model
 from data_interface import load_combined_data
 from dash import Input, Output, callback
 import plotly.graph_objects as go 
@@ -44,3 +45,15 @@ def register_callbacks(app):
             showarrow=False
         )
         return error_fig, error_fig, error_fig
+    
+    @callback(
+          Output('model-summary-plot', 'figure'),
+          Input('select-model-dropdown', 'value'),
+          Input('county-dropdown', 'value'),
+          Input('population-checklist', 'value')
+    )
+    def update_model_summary_plot(model_flag, county, pop_option):
+      df             = load_combined_data(county, use_pop='pop' in pop_option )
+      y_pred, y_true = create_execute_model(df = df, model_flag = model_flag, use_pop='pop' in pop_option)
+      model_plot     = visualize_model_results(y_pred, y_true, county, model_flag)
+      return model_plot
