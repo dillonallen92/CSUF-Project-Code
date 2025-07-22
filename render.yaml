@@ -1,0 +1,7 @@
+services:
+  - type: web
+    name: dash-dashboard
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: python Project/code/dashboard/app.py
