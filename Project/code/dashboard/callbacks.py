@@ -44,3 +44,12 @@ def register_callbacks(app):
             showarrow=False
         )
         return error_fig, error_fig, error_fig
+    
+    @callback(
+          Output('model-summary-plot', 'figure'),
+          Input('select-model-dropdown', 'value'),
+          Input('county-dropdown', 'value'),
+          Input('population-checklist', 'value')
+    )
+    def update_model_summary_plot(model_choice, county, pop_option):
+       pass
