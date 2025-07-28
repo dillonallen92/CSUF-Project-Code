@@ -158,7 +158,7 @@ def pop_copy_monthly(df: pd.DataFrame, pop_series: pd.Series, col_name:str) -> p
 
 def combine_vf_fire_pop_data(pop1_path: str, pop2_path: str, vf_cases_path: str, wildfire_path: str,
                              county: str, start_year: str = "2006", end_year: str = "2015", 
-                             bInterp: bool = False) -> pd.DataFrame:
+                             bInterp: bool = False, bConvRate: bool = False) -> pd.DataFrame:
     """
     Combine_VF_Fire_Pop_Data: Combines VF case data, wildfire data, and annual population data for a given county
     into a single monthly DataFrame with aligned population values.
@@ -172,6 +172,7 @@ def combine_vf_fire_pop_data(pop1_path: str, pop2_path: str, vf_cases_path: str,
         - start_year (str): Starting year as string, default "2006"
         - end_year (str): Ending year as string, default "2015"
         - bInterp (bool): Boolean flag for population interpolation capability
+        - bConvRate (bool): Boolean flag to convert case count to case rate and relabel column name
 
     Output:
         vf_fire_pop_df (pd.DataFrame): Combined monthly VF, wildfire, and population dataset into a pandas DataFrame
@@ -195,6 +196,10 @@ def combine_vf_fire_pop_data(pop1_path: str, pop2_path: str, vf_cases_path: str,
     # Step 3: Map population to monthly data
     if not bInterp:
         vf_fire_pop_df = pop_copy_monthly(vf_fire_df, pop_series, "Population")
+    
+    if bConvRate:
+        vf_fire_pop_df['VF Case Count'] = (vf_fire_pop_df['VF Case Count']/vf_fire_pop_df['Population']) * 100000
+        vf_fire_pop_df = vf_fire_pop_df.rename(columns={'VF Case Count' : 'VF Case Rate'})
     
     return vf_fire_pop_df
 
@@ -225,5 +230,5 @@ if __name__ == "__main__":
     print(" --- Testing Total Combination Dataset")
     comb_dataset = combine_vf_fire_pop_data(pop2000_2010_path, pop2010_2020_path,
                                             vf_cases_path, wildfire_path, county_name,
-                                              start_year, end_year)
+                                              start_year, end_year, bConvRate=True)
     print(comb_dataset.head())
