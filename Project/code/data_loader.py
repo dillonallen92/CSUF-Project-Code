@@ -213,7 +213,7 @@ def combine_vf_fire_pop_data(pop1_path: str, pop2_path: str, vf_cases_path: str,
     # Step 2: Combine and extract population data
     pop_combined = combine_pop_datasets(pop1_path, pop2_path, True)
     if bInterp:
-        end_year = "2016"
+        end_year = str(int(end_year) + 1) # this is such a dumb hack [allows for interp to work]
     pop_series = grab_specific_county_data(pop_combined, county_name, start_year, end_year)
     pop_series = pop_series.str.replace(",", "").astype(int)
     pop_series.index = pop_series.index.astype(int)
