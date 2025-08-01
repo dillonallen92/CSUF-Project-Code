@@ -156,6 +156,9 @@ def pop_copy_monthly(df: pd.DataFrame, pop_series: pd.Series, col_name:str) -> p
     combined_pop_monthly_data = df.copy()
     return combined_pop_monthly_data 
 
+def pop_lin_interp(df: pd.DataFrame, pop_series: pd.Series, col_name: str) -> pd.DataFrame:
+    pass
+
 def combine_vf_fire_pop_data(pop1_path: str, pop2_path: str, vf_cases_path: str, wildfire_path: str,
                              county: str, start_year: str = "2006", end_year: str = "2015", 
                              bInterp: bool = False, bConvRate: bool = False) -> pd.DataFrame:
