@@ -157,7 +157,27 @@ def pop_copy_monthly(df: pd.DataFrame, pop_series: pd.Series, col_name:str) -> p
     return combined_pop_monthly_data 
 
 def pop_lin_interp(df: pd.DataFrame, pop_series: pd.Series, col_name: str) -> pd.DataFrame:
-    pass
+    """
+    Pop_Lin_Interp: This function linearly interpolates the population on a monthly basis between two
+    yearly datapoints.
+
+    Inputs:
+        - df (pd.DataFrame): Pandas DataFrame of csv data
+        - pop_series (pd.Series): Population data in a pd.Series struture. Each index represents a single year
+        - col_name (string): string val of the column name we want to copy
+    
+    Outputs:
+        - df (pd.DataFrame): Input dataframe but modified to have a column of population that is linearly interpolated
+    """
+    pop_series.index = pd.to_datetime(pop_series.index.astype(str) + "-01-01")
+    monthly_index = pd.date_range(start = "2006-01-01", end = "2016-12-01", freq="MS")
+    monthly_pop = pop_series.reindex(monthly_index)
+    monthly_pop = monthly_pop.interpolate(method="time")
+    monthly_actual = monthly_pop.loc["2006-01-01":"2015-12-01"]
+    df[col_name] = monthly_actual
+
+    return df
+
 
 def combine_vf_fire_pop_data(pop1_path: str, pop2_path: str, vf_cases_path: str, wildfire_path: str,
                              county: str, start_year: str = "2006", end_year: str = "2015", 
@@ -192,6 +212,8 @@ def combine_vf_fire_pop_data(pop1_path: str, pop2_path: str, vf_cases_path: str,
 
     # Step 2: Combine and extract population data
     pop_combined = combine_pop_datasets(pop1_path, pop2_path, True)
+    if bInterp:
+        end_year = "2016"
     pop_series = grab_specific_county_data(pop_combined, county_name, start_year, end_year)
     pop_series = pop_series.str.replace(",", "").astype(int)
     pop_series.index = pop_series.index.astype(int)
@@ -199,6 +221,8 @@ def combine_vf_fire_pop_data(pop1_path: str, pop2_path: str, vf_cases_path: str,
     # Step 3: Map population to monthly data
     if not bInterp:
         vf_fire_pop_df = pop_copy_monthly(vf_fire_df, pop_series, "Population")
+    else:
+        vf_fire_pop_df = pop_lin_interp(vf_fire_df, pop_series, "Population")
     
     if bConvRate:
         vf_fire_pop_df['VF Case Count'] = (vf_fire_pop_df['VF Case Count']/vf_fire_pop_df['Population']) * 100000
@@ -230,8 +254,40 @@ if __name__ == "__main__":
     start_year        = "2006"
     end_year          = "2015"
 
-    print(" --- Testing Total Combination Dataset")
-    comb_dataset = combine_vf_fire_pop_data(pop2000_2010_path, pop2010_2020_path,
-                                            vf_cases_path, wildfire_path, county_name,
-                                              start_year, end_year, bConvRate=True)
-    print(comb_dataset.head())
+    '''
+    vf_wf_df = combine_vf_wildfire_data(wildfire_path, vf_cases_path, county_name)
+    vf_wf_df['Month'] = pd.to_datetime(vf_wf_df['Month'])
+    vf_wf_df.set_index('Month', inplace=True)
+    print(vf_wf_df)
+
+    pop_df = combine_pop_datasets(pop2000_2010_path, pop2010_2020_path)
+    county_name = county_name + " County"
+    pop_series = grab_specific_county_data(pop_df, county_name, start_year, end_year)
+    pop_series = pop_series.str.replace(",", "").astype(int)
+    pop_series.index = pd.to_datetime(pop_series.index.astype(str) + "-01-01")
+    print("-- yearly data -- ")
+    print(pop_series)
+
+    monthly_index = pd.date_range(start = "2006-01-01", end = "2016-12-01", freq="MS")
+    monthly_pop = pop_series.reindex(monthly_index)
+    monthly_pop = monthly_pop.interpolate(method="time")
+    print("-- Monthly Data -- ")
+    print(monthly_pop[-15:])
+
+    monthly_actual = monthly_pop.loc["2006-01-01":"2015-12-01"]
+    print(monthly_actual)
+
+    vf_wf_df['Population'] = monthly_actual
+    print(vf_wf_df)
+    '''
+
+    df = combine_vf_fire_pop_data(pop2000_2010_path, pop2010_2020_path, 
+                                  vf_cases_path, wildfire_path, county_name,
+                                  start_year, end_year, bInterp=True)
+    
+    print(df)
+
+    df_conv_rate =combine_vf_fire_pop_data(pop2000_2010_path, pop2010_2020_path, 
+                                  vf_cases_path, wildfire_path, county_name,
+                                  start_year, end_year, bInterp=True, bConvRate= True) 
+    print(df_conv_rate)
