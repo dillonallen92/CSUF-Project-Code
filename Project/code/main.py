@@ -8,7 +8,8 @@ from loss_functions import RMSELoss
 from data_loader import combine_vf_fire_pop_data, combine_vf_wildfire_data
 from transformer_modules.attention import MultiHeadAttention
 
-def main(model_flag: str, county_name: str, bAdd_Pop: bool = True, epochs: int = 300, show_plots: bool = True):
+def main(model_flag: str, county_name: str, bAdd_Pop: bool = True, epochs: int = 300, show_plots: bool = True, 
+         bInterp = False, bConvRate = False):
 
   fire_data_path       = "Project/data/CAL_FIRE_Wildland_PublicReport_2000to2018.csv"
   vf_data_path         = "Project/data/coccidioidomycosis_m2000_2015_v0.1.csv"
@@ -39,7 +40,7 @@ def main(model_flag: str, county_name: str, bAdd_Pop: bool = True, epochs: int =
     title_text         = "(Population Added)"
     source_column_labels = ['Fire Incident Count', 'VF Case Count', 'Population']
     df = combine_vf_fire_pop_data(pop1_data_path, pop2_data_path, vf_data_path, fire_data_path, county_name,
-                                          start_year, end_year, bInterp=False)
+                                          start_year, end_year, bInterp = bInterp, bConvRate=bConvRate)
   else:
     title_text         = "(Excl. Population)"
     source_column_labels = ['Fire Incident Count', 'VF Case Count']
