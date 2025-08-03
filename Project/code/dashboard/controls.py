@@ -13,8 +13,24 @@ county_dropdown = dcc.Dropdown(
 population_checklist = dcc.Checklist(
   id="population-checklist",
   options = [{'label' : 'Include Population', 'value':'pop'}],
-  value = ['pop'],
+  value = [],
   labelStyle={'display' : 'inline-block', 'margin-right':'15px'}
+)
+
+popCopy_checklist = dcc.Checklist(
+  id='popCopy-checklist',
+  options=[{'label': 'Population Copy', 'value': 'popcopy'}],
+  value = [],
+  labelStyle={'display' : 'none', 'margin-right':'15px'}
+  # labelStyle = {'display' : 'inline-block', 'margin-right':'15px'}
+)
+
+popLinInterp_checklist = dcc.Checklist(
+  id='popLinInterp-checklist',
+  options=[{'label': 'Linearly Interpolate Population Data', 'value':'poplininterp'}],
+  value = [],
+  labelStyle={'display' : 'none', 'margin-right':'15px'},
+  # labelStyle={'display' : 'inline-block', 'margin-right':'15px'}
 )
 
 plot_county_dropdown = dcc.Dropdown(
