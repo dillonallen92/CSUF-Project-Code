@@ -1,5 +1,5 @@
 from controls import county_dropdown, population_checklist, \
-  plot_county_dropdown, select_model_dropdown, popCopy_checklist, popLinInterp_checklist
+  plot_county_dropdown, select_model_dropdown, pop_option_radio
 
 from dash import html, dcc, dash_table
 
@@ -13,8 +13,7 @@ layout = html.Div([
   county_dropdown], style = {'marginLeft': '15px', 'width': '800px'}), html.Div([])], style={'display':'flex', 'alignItems': 'center', 'marginBottom': '15px'}),
   html.Div([
     population_checklist,
-    popCopy_checklist,
-    popLinInterp_checklist], style={'marginBottom': '15px'}),
+    pop_option_radio], style={'marginBottom': '15px'}),
   dcc.Tabs([
     dcc.Tab(label='Explore Data Table', children = [
       # population_checklist,
