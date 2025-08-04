@@ -10,14 +10,13 @@ def register_callbacks(app):
         Output('data-table', 'data'),
         Input('county-dropdown', 'value'),
         Input('population-checklist', 'value'),
-        Input('popCopy-checklist', 'value'),
-        Input('popLinInterp-checklist', 'value')
+        Input('popOption-radio', 'value')
     )
-    def update_table(county, pop_option, popCopy_option, popLinInterp_option):
-        if popCopy_option:
+    def update_table(county, pop_option, popControl_option):
+        if popControl_option == 'popcopy':
           df = load_combined_data(county, use_pop='pop' in pop_option)
-        elif popLinInterp_option:
-           df = load_combined_data(county, use_pop='pop' in pop_option, bInterp='poplininterp' in popLinInterp_option)
+        elif popControl_option == 'poplininterp':
+           df = load_combined_data(county, use_pop='pop' in pop_option, bInterp=True)
         else:
            df = load_combined_data(county, use_pop=False)
         df = df.reset_index()
@@ -25,9 +24,8 @@ def register_callbacks(app):
         return columns, df.to_dict('records')
 
     @callback(
-          Output('popCopy-checklist', 'style'),
-          Output('popCopy-checklist', 'value'),
-          Output('popLinInterp-checklist', 'style'),
+          Output('popOption-radio', 'style'),
+          Output('popOption-radio', 'value'),
           Input('population-checklist', 'value')
     )
     def show_hide_PopControl(pop_option):
@@ -35,14 +33,12 @@ def register_callbacks(app):
           print('pop checked')
           return(
             {'display': 'inline-block', 'margin-left':'15px'},  # Show
-            ['popcopy'],  # Checked by default
-            {'display': 'inline-block'}  # Show
+             'popcopy',   # Checked by default
           )
        else:
           return(
             {'display': 'none'},  # Hide
-            [],  # Uncheck
-            {'display': 'none'}  # Hide
+            None,  # Uncheck
           )
 
     @callback(

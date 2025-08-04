@@ -33,6 +33,17 @@ popLinInterp_checklist = dcc.Checklist(
   style={'display':'none'}
 )
 
+pop_option_radio = dcc.RadioItems(
+  id = 'popOption-radio',
+  options=[
+    {'label': 'Population Copy', 'value': 'popcopy'},
+    {'label': 'Linearly Interpolation', 'value': 'poplininterp'}
+  ],
+  value = None,
+  labelStyle={'display':'inline-block', 'margin-right':'15px'},
+  style = {'display':'none'}
+)
+
 plot_county_dropdown = dcc.Dropdown(
   id='plot-county-dropdown', 
   options = [{'label':county, 'value': county} for county in counties],
