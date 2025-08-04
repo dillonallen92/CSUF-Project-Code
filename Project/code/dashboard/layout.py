@@ -1,5 +1,5 @@
 from controls import county_dropdown, population_checklist, \
-  plot_county_dropdown, select_model_dropdown, pop_option_radio
+  plot_county_dropdown, select_model_dropdown, pop_option_radio, vf_case_mode_radio
 
 from dash import html, dcc, dash_table
 
@@ -12,8 +12,28 @@ layout = html.Div([
   html.Div([
   county_dropdown], style = {'marginLeft': '15px', 'width': '800px'}), html.Div([])], style={'display':'flex', 'alignItems': 'center', 'marginBottom': '15px'}),
   html.Div([
-    population_checklist,
-    pop_option_radio], style={'marginBottom': '15px'}),
+  html.Div([
+        html.Div("Population Options", style={'fontWeight': 'bold', 'marginBottom': '5px'}),
+        population_checklist,
+        html.Div(pop_option_radio, id='pop-radio-wrapper')
+    ], style={
+        'border': '1px solid #ccc',
+        'padding': '10px',
+        'borderRadius': '5px',
+        'marginRight': '40px',
+        'marginTop': '5px'
+    }),
+
+  html.Div([
+    html.Div("Valley Fever Cases", style={'fontWeight': 'bold', 'marginBottom': '5px'}),
+    vf_case_mode_radio
+  ], style={
+    'border': '1px solid #ccc',
+    'padding': '10px',
+    'borderRadius': '5px',
+    'marginTop': '5px'
+  })
+], style={'display': 'flex', 'alignItems': 'flex-start', 'marginBottom': '15px'}),
   dcc.Tabs([
     dcc.Tab(label='Explore Data Table', children = [
       # population_checklist,

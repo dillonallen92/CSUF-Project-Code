@@ -28,6 +28,16 @@ pop_option_radio = dcc.RadioItems(
   style = {'display':'none'}
 )
 
+vf_case_mode_radio = dcc.RadioItems(
+  id='vfCaseMode-radio',
+  options=[
+    {'label': 'Case Count', 'value':'casecount'},
+    {'label': 'Case Rate', 'value':'caserate'}
+  ],
+  value='casecount',
+  labelStyle={'display': 'inline-block', 'margin-right':'15px'}
+)
+
 plot_county_dropdown = dcc.Dropdown(
   id='plot-county-dropdown', 
   options = [{'label':county, 'value': county} for county in counties],

@@ -10,13 +10,15 @@ def register_callbacks(app):
         Output('data-table', 'data'),
         Input('county-dropdown', 'value'),
         Input('population-checklist', 'value'),
-        Input('popOption-radio', 'value')
+        Input('popOption-radio', 'value'),
+        Input('vfCaseMode-radio', 'value')
     )
-    def update_table(county, pop_option, popControl_option):
+    def update_table(county, pop_option, popControl_option, vfCase_option):
+        bConvRate = True if vfCase_option == 'caserate' else False
         if popControl_option == 'popcopy':
-          df = load_combined_data(county, use_pop='pop' in pop_option)
+          df = load_combined_data(county, use_pop='pop' in pop_option, bConvRate=bConvRate)
         elif popControl_option == 'poplininterp':
-           df = load_combined_data(county, use_pop='pop' in pop_option, bInterp=True)
+           df = load_combined_data(county, use_pop='pop' in pop_option, bInterp=True, bConvRate=bConvRate)
         else:
            df = load_combined_data(county, use_pop=False)
         df = df.reset_index()
@@ -45,21 +47,23 @@ def register_callbacks(app):
     Output('fire-plot', 'figure'),
     Output('vf-plot', 'figure'),
     Input('county-dropdown', 'value'),
-    Input('popOption-radio', 'value')
+    Input('popOption-radio', 'value'),
+    Input('vfCaseMode-radio', 'value')
     )
-    def update_plot(county, popControl_option):
+    def update_plot(county, popControl_option, vfCase_option):
       try:
+        bConvRate = True if vfCase_option == 'caserate' else False 
         print(f"[update_plot] Loading data for county: {county}")
         if popControl_option == 'popcopy':
-          df = load_combined_data(county, use_pop=True)
+          df = load_combined_data(county, use_pop=True, bConvRate=bConvRate)
         elif popControl_option == 'poplininterp':
-           df = load_combined_data(county, use_pop=True, bInterp=True)
+           df = load_combined_data(county, use_pop=True, bInterp=True, bConvRate=bConvRate)
         else:
            df = load_combined_data(county, use_pop=False)
         print(f"[update_plot] DF shape: {df.shape}")
         print(df.head())
 
-        plots = make_individual_timeseries(df, county)
+        plots = make_individual_timeseries(df, county, bConvRate = bConvRate)
         
         return (
            plots.get('population'),
