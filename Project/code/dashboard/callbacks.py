@@ -30,7 +30,6 @@ def register_callbacks(app):
     )
     def show_hide_PopControl(pop_option):
        if pop_option and 'pop' in pop_option:
-          print('pop checked')
           return(
             {'display': 'inline-block', 'margin-left':'15px'},  # Show
              'popcopy',   # Checked by default
