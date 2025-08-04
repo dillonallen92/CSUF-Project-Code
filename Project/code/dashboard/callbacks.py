@@ -9,10 +9,15 @@ def register_callbacks(app):
         Output('data-table', 'columns'),
         Output('data-table', 'data'),
         Input('county-dropdown', 'value'),
-        Input('population-checklist', 'value')
+        Input('population-checklist', 'value'),
+        Input('popCopy-checklist', 'value'),
+        Input('popLinInterp-checklist', 'value')
     )
-    def update_table(county, pop_option):
-        df = load_combined_data(county, use_pop='pop' in pop_option)
+    def update_table(county, pop_option, popCopy_option, popLinInterp_option):
+        if popCopy_option:
+          df = load_combined_data(county, use_pop='pop' in pop_option)
+        if popLinInterp_option:
+           df = load_combined_data(county, use_pop='pop' in pop_option, bInterp='poplininterp' in popLinInterp_option)
         df = df.reset_index()
         columns = [{"name": i, "id": i} for i in df.columns]
         return columns, df.to_dict('records')
