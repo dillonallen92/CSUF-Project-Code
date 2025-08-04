@@ -3,7 +3,7 @@ import pandas as pd
 import plotly.graph_objects as go
 import numpy as np 
 
-def make_individual_timeseries(df: pd.DataFrame):
+def make_individual_timeseries(df: pd.DataFrame, county=""):
     df = df.copy().reset_index()
 
     # Rename index column to 'Date' if needed
@@ -16,15 +16,15 @@ def make_individual_timeseries(df: pd.DataFrame):
 
     # Plot 1: Population (if present)
     if 'Population' in df.columns:
-        plots['population'] = px.scatter(df, x='Date', y='Population', title='Population Over Time')
+        plots['population'] = px.scatter(df, x='Date', y='Population', title=f'Population Over Time in {county}')
 
     # Plot 2: Fire Incident Count
     if 'Fire Incident Count' in df.columns:
-        plots['fire'] = px.scatter(df, x='Date', y='Fire Incident Count', title='Fire Incidents Over Time')
+        plots['fire'] = px.scatter(df, x='Date', y='Fire Incident Count', title=f'Fire Incidents Over Time in {county}')
 
     # Plot 3: VF Case Count
     if 'VF Case Count' in df.columns:
-        plots['vf'] = px.scatter(df, x='Date', y='VF Case Count', title='VF Cases Over Time')
+        plots['vf'] = px.scatter(df, x='Date', y='VF Case Count', title=f'VF Cases Over Time in {county}')
 
     return plots
 

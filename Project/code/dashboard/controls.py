@@ -21,16 +21,16 @@ popCopy_checklist = dcc.Checklist(
   id='popCopy-checklist',
   options=[{'label': 'Population Copy', 'value': 'popcopy'}],
   value = [],
-  labelStyle={'display' : 'none', 'margin-right':'15px'}
-  # labelStyle = {'display' : 'inline-block', 'margin-right':'15px'}
+  labelStyle={'display' : 'inline-block', 'margin-right':'15px'},
+  style={'display':'none'}
 )
 
 popLinInterp_checklist = dcc.Checklist(
   id='popLinInterp-checklist',
   options=[{'label': 'Linearly Interpolate Population Data', 'value':'poplininterp'}],
   value = [],
-  labelStyle={'display' : 'none', 'margin-right':'15px'},
-  # labelStyle={'display' : 'inline-block', 'margin-right':'15px'}
+  labelStyle={'display' : 'inline-block', 'margin-right':'15px'},
+  style={'display':'none'}
 )
 
 plot_county_dropdown = dcc.Dropdown(

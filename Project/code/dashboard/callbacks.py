@@ -9,28 +9,63 @@ def register_callbacks(app):
         Output('data-table', 'columns'),
         Output('data-table', 'data'),
         Input('county-dropdown', 'value'),
-        Input('population-checklist', 'value')
+        Input('population-checklist', 'value'),
+        Input('popCopy-checklist', 'value'),
+        Input('popLinInterp-checklist', 'value')
     )
-    def update_table(county, pop_option):
-        df = load_combined_data(county, use_pop='pop' in pop_option)
+    def update_table(county, pop_option, popCopy_option, popLinInterp_option):
+        if popCopy_option:
+          df = load_combined_data(county, use_pop='pop' in pop_option)
+        elif popLinInterp_option:
+           df = load_combined_data(county, use_pop='pop' in pop_option, bInterp='poplininterp' in popLinInterp_option)
+        else:
+           df = load_combined_data(county, use_pop=False)
         df = df.reset_index()
         columns = [{"name": i, "id": i} for i in df.columns]
         return columns, df.to_dict('records')
 
     @callback(
+          Output('popCopy-checklist', 'style'),
+          Output('popCopy-checklist', 'value'),
+          Output('popLinInterp-checklist', 'style'),
+          Input('population-checklist', 'value')
+    )
+    def show_hide_PopControl(pop_option):
+       if pop_option and 'pop' in pop_option:
+          print('pop checked')
+          return(
+            {'display': 'inline-block', 'margin-left':'15px'},  # Show
+            ['popcopy'],  # Checked by default
+            {'display': 'inline-block'}  # Show
+          )
+       else:
+          return(
+            {'display': 'none'},  # Hide
+            [],  # Uncheck
+            {'display': 'none'}  # Hide
+          )
+
+    @callback(
     Output('population-plot', 'figure'),
     Output('fire-plot', 'figure'),
     Output('vf-plot', 'figure'),
-    Input('county-dropdown', 'value')
+    Input('county-dropdown', 'value'),
+    Input('popCopy-checklist', 'value'),
+    Input('popLinInterp-checklist', 'value')
     )
-    def update_plot(county):
+    def update_plot(county, popCopy_option, popLinInterp_option):
       try:
         print(f"[update_plot] Loading data for county: {county}")
-        df = load_combined_data(county, use_pop=True)
+        if popCopy_option:
+          df = load_combined_data(county, use_pop=True)
+        elif popLinInterp_option:
+           df = load_combined_data(county, use_pop=True, bInterp='poplininterp' in popLinInterp_option)
+        else:
+           df = load_combined_data(county, use_pop=False)
         print(f"[update_plot] DF shape: {df.shape}")
         print(df.head())
 
-        plots = make_individual_timeseries(df)
+        plots = make_individual_timeseries(df, county)
         
         return (
            plots.get('population'),

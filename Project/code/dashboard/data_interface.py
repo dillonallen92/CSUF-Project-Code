@@ -6,7 +6,8 @@ sys.path.append(str(Path(__file__).resolve().parent.parent))
 
 from data_loader import combine_vf_wildfire_data, combine_vf_fire_pop_data
 
-def load_combined_data(county : str, use_pop : bool = True) -> pd.DataFrame:
+def load_combined_data(county : str, use_pop : bool = True, bInterp: bool = False, 
+                       bConvRate:bool = False) -> pd.DataFrame:
   if use_pop:
     return combine_vf_fire_pop_data(
       pop1_path ="Project/data/cali_county_pop_2000_2010.csv",
@@ -16,7 +17,8 @@ def load_combined_data(county : str, use_pop : bool = True) -> pd.DataFrame:
       county = county, 
       start_year= "2006", 
       end_year = "2015",
-      bInterp = False
+      bInterp = bInterp,
+      bConvRate= bConvRate
     )
   else:
     return combine_vf_wildfire_data(
