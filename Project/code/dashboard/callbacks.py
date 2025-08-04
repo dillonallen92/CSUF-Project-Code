@@ -46,16 +46,15 @@ def register_callbacks(app):
     Output('fire-plot', 'figure'),
     Output('vf-plot', 'figure'),
     Input('county-dropdown', 'value'),
-    Input('popCopy-checklist', 'value'),
-    Input('popLinInterp-checklist', 'value')
+    Input('popOption-radio', 'value')
     )
-    def update_plot(county, popCopy_option, popLinInterp_option):
+    def update_plot(county, popControl_option):
       try:
         print(f"[update_plot] Loading data for county: {county}")
-        if popCopy_option:
+        if popControl_option == 'popcopy':
           df = load_combined_data(county, use_pop=True)
-        elif popLinInterp_option:
-           df = load_combined_data(county, use_pop=True, bInterp='poplininterp' in popLinInterp_option)
+        elif popControl_option == 'poplininterp':
+           df = load_combined_data(county, use_pop=True, bInterp=True)
         else:
            df = load_combined_data(county, use_pop=False)
         print(f"[update_plot] DF shape: {df.shape}")
@@ -81,10 +80,16 @@ def register_callbacks(app):
           Output('model-summary-plot', 'figure'),
           Input('select-model-dropdown', 'value'),
           Input('county-dropdown', 'value'),
-          Input('population-checklist', 'value')
+          Input('population-checklist', 'value'),
+          Input('popOption-radio', 'value')
     )
-    def update_model_summary_plot(model_flag, county, pop_option):
-      df             = load_combined_data(county, use_pop='pop' in pop_option )
+    def update_model_summary_plot(model_flag, county, pop_option, popControl_option):
+      if popControl_option == 'popcopy':
+         df = load_combined_data(county, use_pop='pop' in pop_option, bInterp=False)
+      elif popControl_option == 'poplininterp':
+         df = load_combined_data(county, use_pop='pop' in pop_option, bInterp=True)
+      else:
+        df             = load_combined_data(county, use_pop='pop' in pop_option )
       y_pred, y_true = create_execute_model(df = df, model_flag = model_flag, use_pop='pop' in pop_option)
       model_plot     = visualize_model_results(y_pred, y_true, county, model_flag)
       return model_plot
