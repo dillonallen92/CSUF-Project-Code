@@ -14,10 +14,10 @@ from transformer_modules.attention import MultiHeadAttention
 
 # default parameters right now, will allow users to change later
 # probably
-def create_execute_model(df: pd.DataFrame, model_flag: str, use_pop: bool) -> tuple[torch.tensor, torch.tensor]:
-  
+def create_execute_model(df: pd.DataFrame, model_flag: str, use_pop: bool, bConvRate = False) -> tuple[torch.tensor, torch.tensor]:
+  case_string = "Rate" if bConvRate else "Count"
   if use_pop:
-    source_column_labels = ['Fire Incident Count', 'VF Case Count', 'Population']
+    source_column_labels = ['Fire Incident Count', f'VF Case {case_string}', 'Population']
   else:
     source_column_labels = ['Fire Incidenct Count', 'VF Case Count']
   
