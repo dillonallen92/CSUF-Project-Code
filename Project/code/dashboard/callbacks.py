@@ -84,15 +84,17 @@ def register_callbacks(app):
           Input('select-model-dropdown', 'value'),
           Input('county-dropdown', 'value'),
           Input('population-checklist', 'value'),
-          Input('popOption-radio', 'value')
+          Input('popOption-radio', 'value'),
+          Input('vfCaseMode-radio', 'value')
     )
-    def update_model_summary_plot(model_flag, county, pop_option, popControl_option):
+    def update_model_summary_plot(model_flag, county, pop_option, popControl_option, vfCase_option):
+      bConvRate = True if vfCase_option == 'caserate' else False
       if popControl_option == 'popcopy':
-         df = load_combined_data(county, use_pop='pop' in pop_option, bInterp=False)
+         df = load_combined_data(county, use_pop='pop' in pop_option, bInterp=False, bConvRate=bConvRate)
       elif popControl_option == 'poplininterp':
-         df = load_combined_data(county, use_pop='pop' in pop_option, bInterp=True)
+         df = load_combined_data(county, use_pop='pop' in pop_option, bInterp=True, bConvRate=bConvRate)
       else:
         df             = load_combined_data(county, use_pop='pop' in pop_option )
-      y_pred, y_true = create_execute_model(df = df, model_flag = model_flag, use_pop='pop' in pop_option)
-      model_plot     = visualize_model_results(y_pred, y_true, county, model_flag)
+      y_pred, y_true = create_execute_model(df = df, model_flag = model_flag, use_pop='pop' in pop_option, bConvRate=bConvRate)
+      model_plot     = visualize_model_results(y_pred, y_true, county, model_flag, bConvRate = bConvRate)
       return model_plot

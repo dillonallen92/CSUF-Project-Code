@@ -29,16 +29,17 @@ def make_individual_timeseries(df: pd.DataFrame, county="", bConvRate = False):
 
     return plots
 
-def visualize_model_results(y_pred, y_test, county, model_flag):
+def visualize_model_results(y_pred, y_test, county, model_flag, bConvRate = False):
     fig = go.Figure()
     num_months = np.arange(0, len(y_pred), 1)
+    yaxis_string = "Case Rates" if bConvRate else "Case Counts"
     fig.add_trace(go.Scatter(x = num_months, y = y_pred, mode='markers', name='Predicted Value'))
     fig.add_trace(go.Scatter(x = num_months, y = y_test, mode = "markers", name = "True Value"))
 
     fig.update_layout(
         title=f"Model: {model_flag} | County: {county}",
         xaxis_title="Month",
-        yaxis_title="Value",
+        yaxis_title=f"{yaxis_string}",
         legend_title="Legend",
     )
     
