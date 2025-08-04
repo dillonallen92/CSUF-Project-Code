@@ -18,6 +18,27 @@ def register_callbacks(app):
         return columns, df.to_dict('records')
 
     @callback(
+          Output('popCopy-checklist', 'style'),
+          Output('popCopy-checklist', 'value'),
+          Output('popLinInterp-checklist', 'style'),
+          Input('population-checklist', 'value')
+    )
+    def show_hide_PopControl(pop_option):
+       if pop_option and 'pop' in pop_option:
+          print('pop checked')
+          return(
+            {'display': 'inline-block', 'margin-left':'15px'},  # Show
+            ['popcopy'],  # Checked by default
+            {'display': 'inline-block'}  # Show
+          )
+       else:
+          return(
+            {'display': 'none'},  # Hide
+            [],  # Uncheck
+            {'display': 'none'}  # Hide
+          )
+
+    @callback(
     Output('population-plot', 'figure'),
     Output('fire-plot', 'figure'),
     Output('vf-plot', 'figure'),
