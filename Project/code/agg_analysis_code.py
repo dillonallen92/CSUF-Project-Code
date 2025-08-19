@@ -61,7 +61,41 @@ def transform_Data(X_train: torch.Tensor, X_test: torch.Tensor,
 
   return X_train_final, X_test_final, y_train_final, y_test_final, scaler_Y
 
+def visualize_train_test_history(history):
+  training_steps = np.linspace(1, len(history['train_loss']), len(history['train_loss']))
+  testing_steps  = np.linspace(1, len(history['test_loss']), len(history['test_loss']))
+  fig, ax = plt.subplots(1,2)
+  ax[0].plot(training_steps, history['train_loss'])
+  ax[0].set_title("Training Loss")
+  ax[0].set_xlabel("Epochs in Training")
+  ax[0].set_ylabel("Training Error")
+  ax[0].grid(True)
 
+  ax[1].plot(testing_steps, history['test_loss'])
+  ax[1].set_title("Testing Loss")
+  ax[1].set_xlabel("Epochs (decade)")
+  ax[1].set_ylabel("Test Error")
+  ax[1].grid(True)
+
+  plt.tight_layout
+  plt.show()
+
+def visualize_case_rate(y_train_pred, y_train_true, y_test_pred, y_test_true, split_frac):
+  
+  y_true = np.concat((y_train_true, y_test_true))
+  y_pred = np.concat((y_train_pred, y_test_pred))
+
+  split_val = int(len(y_true)*split_frac)
+  plt.figure(figsize=(15,8))
+  plt.plot(y_pred, label = "Predicted Case Rates", linestyle="-.")
+  plt.plot(y_true, label="True Case Rates", linestyle="-.")
+  plt.axvline(x = split_val, color = "r", linestyle="--")
+  plt.title("Case Rate (True vs Predicted)")
+  plt.xlabel("Number of Months")
+  plt.ylabel("Valley Fever Case Rate")
+  plt.legend()
+  plt.grid(True)
+  plt.show()
 
 if __name__ == "__main__":
   print("--- Aggregate Data Analysis ---")
@@ -83,4 +117,20 @@ if __name__ == "__main__":
   features, target = feature_target_vectors(df, targetCol="VFRate")
   features, target = create_sequences(features, target, seq_length=seq_length)
   X_train, X_test, y_train, y_test = split_data(features, target, split_frac = split_frac)
-  
+  X_train_final, X_test_final, y_train_final, y_test_final, scaler_Y = transform_Data(X_train, X_test,
+                                                                                    y_train, y_test)
+  input_layers = X_train_final.shape[-1]
+  model_lstm = LSTM(input_size=input_layers, hidden_size=hidden_size, 
+                    dropout=dropout, num_layers=num_layers)
+  criterion = RMSELoss()
+  optimizer = optim.Adam(model_lstm.parameters(), lr=learning_rate, weight_decay=weight_decay)
+  trainer = TrainerNewNew(model = model_lstm, criterion=criterion, optimizer=optimizer, scaler=scaler_Y)
+  history, y_train_pred, y_train_true = trainer.train(X_train=X_train_final, X_test = X_test_final, y_train=y_train_final, y_test=y_test_final, epochs=epochs)
+  y_test_pred, y_test_true = trainer.evaluate(X_test_final, y_test_final)
+
+  visualize_train_test_history(history)
+  visualize_case_rate(y_train_pred=y_train_pred, y_train_true=y_train_true, y_test_pred = y_test_pred, 
+                      y_test_true = y_test_true, split_frac=split_frac)
+
+
+
