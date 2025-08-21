@@ -7,6 +7,7 @@ from sklearn.preprocessing import MinMaxScaler
 from models import LSTM, TransformerModel 
 from trainer_new import TrainerNewNew
 from loss_functions import RMSELoss
+from transformer_modules.attention import MultiHeadAttention
 
 def prep_data(csv_path:str) -> pd.DataFrame:
   df = pd.read_csv(csv_path)
@@ -61,18 +62,18 @@ def transform_Data(X_train: torch.Tensor, X_test: torch.Tensor,
 
   return X_train_final, X_test_final, y_train_final, y_test_final, scaler_Y
 
-def visualize_train_test_history(history):
+def visualize_train_test_history(history, model_flag):
   training_steps = np.linspace(1, len(history['train_loss']), len(history['train_loss']))
   testing_steps  = np.linspace(1, len(history['test_loss']), len(history['test_loss']))
-  fig, ax = plt.subplots(1,2)
+  fig, ax = plt.subplots(1,2, figsize=(15,8))
   ax[0].plot(training_steps, history['train_loss'])
-  ax[0].set_title("Training Loss")
+  ax[0].set_title(f"{model_flag} Training Loss")
   ax[0].set_xlabel("Epochs in Training")
   ax[0].set_ylabel("Training Error")
   ax[0].grid(True)
 
   ax[1].plot(testing_steps, history['test_loss'])
-  ax[1].set_title("Testing Loss")
+  ax[1].set_title(f"{model_flag} Testing Loss")
   ax[1].set_xlabel("Epochs (decade)")
   ax[1].set_ylabel("Test Error")
   ax[1].grid(True)
@@ -80,17 +81,18 @@ def visualize_train_test_history(history):
   plt.tight_layout
   plt.show()
 
-def visualize_case_rate(y_train_pred, y_train_true, y_test_pred, y_test_true, split_frac):
+def visualize_case_rate(y_train_pred, y_train_true, y_test_pred, y_test_true, split_frac, 
+                        county_name="", model_flag = ""):
   
-  y_true = np.concat((y_train_true, y_test_true))
-  y_pred = np.concat((y_train_pred, y_test_pred))
+  y_true = np.concatenate((y_train_true, y_test_true))
+  y_pred = np.concatenate((y_train_pred, y_test_pred))
 
   split_val = int(len(y_true)*split_frac)
   plt.figure(figsize=(15,8))
   plt.plot(y_pred, label = "Predicted Case Rates", linestyle="-.")
   plt.plot(y_true, label="True Case Rates", linestyle="-.")
   plt.axvline(x = split_val, color = "r", linestyle="--")
-  plt.title("Case Rate (True vs Predicted)")
+  plt.title(f"{model_flag}:{county_name} Case Rate (True vs Predicted)")
   plt.xlabel("Number of Months")
   plt.ylabel("Valley Fever Case Rate")
   plt.legend()
@@ -101,16 +103,28 @@ if __name__ == "__main__":
   print("--- Aggregate Data Analysis ---")
 
   # Parameters to change
-  data_path     = "Project/data/Fresno_Aggregate.csv"
   seq_length    = 12
-  split_frac    = 0.8
-  lookback      = 12
+  split_frac    = 0.80
+  lookback      = 6
   hidden_size   = 32
   num_layers    = 2
   dropout       = 0.2
-  learning_rate = 0.001
+  learning_rate = 0.0005
   epochs        = 300
   weight_decay  = 1e-5
+
+  # transformer parameters
+  d_model         = 32
+  nheads          = 1
+  dim_feedforward = 2*d_model
+
+  model_flag = "Transformer"
+  county_flag = "Kern"
+
+  if county_flag == "Fresno":
+    data_path = "Project/data/Fresno_Aggregate.csv"
+  elif county_flag == "Kern":
+    data_path = "Project/data/Kern_Aggregate.csv"
 
   # Process
   df   = prep_data(data_path)
@@ -119,18 +133,21 @@ if __name__ == "__main__":
   X_train, X_test, y_train, y_test = split_data(features, target, split_frac = split_frac)
   X_train_final, X_test_final, y_train_final, y_test_final, scaler_Y = transform_Data(X_train, X_test,
                                                                                     y_train, y_test)
-  input_layers = X_train_final.shape[-1]
-  model_lstm = LSTM(input_size=input_layers, hidden_size=hidden_size, 
+  input_size = X_train_final.shape[-1]
+  model_lstm = LSTM(input_size=input_size, hidden_size=hidden_size, 
                     dropout=dropout, num_layers=num_layers)
+  model_transformer = TransformerModel(input_size= input_size, d_model = d_model, nhead= nheads, num_layers = num_layers,
+                             dim_feedforward= dim_feedforward, dropout=dropout, attention_impl=MultiHeadAttention)
+  model = model_lstm if model_flag == "LSTM" else model_transformer
   criterion = RMSELoss()
-  optimizer = optim.Adam(model_lstm.parameters(), lr=learning_rate, weight_decay=weight_decay)
-  trainer = TrainerNewNew(model = model_lstm, criterion=criterion, optimizer=optimizer, scaler=scaler_Y)
+  optimizer = optim.Adam(model.parameters(), lr=learning_rate, weight_decay=weight_decay)
+  trainer = TrainerNewNew(model = model, criterion=criterion, optimizer=optimizer, scaler=scaler_Y)
   history, y_train_pred, y_train_true = trainer.train(X_train=X_train_final, X_test = X_test_final, y_train=y_train_final, y_test=y_test_final, epochs=epochs)
   y_test_pred, y_test_true = trainer.evaluate(X_test_final, y_test_final)
 
-  visualize_train_test_history(history)
+  visualize_train_test_history(history, model_flag)
   visualize_case_rate(y_train_pred=y_train_pred, y_train_true=y_train_true, y_test_pred = y_test_pred, 
-                      y_test_true = y_test_true, split_frac=split_frac)
+                      y_test_true = y_test_true, split_frac=split_frac, county_name=county_flag, model_flag = model_flag)
 
 
 
