@@ -105,7 +105,7 @@ if __name__ == "__main__":
   # Parameters to change
   seq_length    = 12
   split_frac    = 0.80
-  lookback      = 6
+  lookback      = 12
   hidden_size   = 32
   num_layers    = 2
   dropout       = 0.2
