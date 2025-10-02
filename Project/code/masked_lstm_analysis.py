@@ -11,7 +11,7 @@ def read_data(file_path:str) -> pd.DataFrame:
   
 def format_feature_dataframe(df: pd.DataFrame) -> pd.DataFrame:
     # turn the Year-Month column into the index
-    df = df.set_index('Year-Month')
+    df: pd.DataFrame = df.set_index('Year-Month')
     # convert the index to a datetime object
     df.index = pd.to_datetime(df.index)
     return df
