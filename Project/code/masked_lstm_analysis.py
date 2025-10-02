@@ -35,6 +35,7 @@ def generate_padded_data(feature_df: pd.DataFrame, df_window_sizes: pd.DataFrame
     # features have a window size of 12, so I will take all 12 data points. In other features, the
     # window size is 1, so I will have 11 zeros and 1 datapoint at the end. 
     
+    
     for i in range(num_samples):
         for j, feature in enumerate(data_cols):
             window_size:int = window_sizes[feature]
@@ -45,8 +46,26 @@ def generate_padded_data(feature_df: pd.DataFrame, df_window_sizes: pd.DataFrame
     y_tgt_adj: np.ndarray = target_vec[(max_window_size-1):]
     return padded_data, y_tgt_adj
     
-  
+def create_masking_vector(feature_df: pd.DataFrame, df_window_sizes:pd.DataFrame) -> np.ndarray:
+    window_sizes_filtered : pd.DataFrame = df_window_sizes[df_window_sizes['feature'] != 'All Features']
+    window_sizes: dict[str, int] = window_sizes_filtered.set_index('feature')['window_size'].to_dict()
+    max_window_size : int = max(window_sizes.values())
+    num_features : int = window_sizes_filtered.shape[0]
+    masking_matrix: np.ndarray = np.zeros((max_window_size, num_features))
+    data_cols: list[str] = feature_df.columns.tolist()
+    # now that we have the masking matrix of zeros, I need to replace each of the columns 
+    # with the necessary 1's based off the window length
 
+    for j, feature in enumerate(data_cols):
+        # print(f"index {j} relates to feature {feature}")
+        window_size : int = window_sizes[feature]
+        if window_size == max_window_size:
+            masking_matrix[:,j] = np.ones((max_window_size, ))
+        else:
+            masking_matrix[(max_window_size - window_size):, j] = np.ones((window_size, ))
+
+    # print(masking_matrix)
+    return masking_matrix
 
 if __name__ == "__main__":
     
@@ -75,3 +94,7 @@ if __name__ == "__main__":
     print(target_vec[11])  # Print the target value corresponding to the first sample
     print("--- Adjusted Target Vec Value ---")
     print(tgt_adj[0])    
+
+    print("--- Masking Matrix ---")
+    print(create_masking_vector(df_features, best_window_vals))
+    masking_matrix: np.ndarray = create_masking_vector(df_features, best_window_vals)
