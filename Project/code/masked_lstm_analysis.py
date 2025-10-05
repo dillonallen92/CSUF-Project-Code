@@ -1,9 +1,9 @@
 import numpy as np
-import matplotlib.pyplot as plt 
-import torch
-import torch.nn as nn
-import torch.optim as optim
-import pandas as pd 
+import pandas as pd
+import matplotlib.pyplot as plt
+import torch 
+import torch.nn as nn 
+import torch.optim as optim  
 
 def read_data(file_path:str) -> pd.DataFrame:
     data: pd.DataFrame = pd.read_csv(file_path)
