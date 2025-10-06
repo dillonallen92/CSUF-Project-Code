@@ -4,6 +4,8 @@ import matplotlib.pyplot as plt
 import torch 
 import torch.nn as nn 
 import torch.optim as optim  
+from sklearn.preprocessing import StandardScaler
+
 
 def read_data(file_path:str) -> pd.DataFrame:
     data: pd.DataFrame = pd.read_csv(file_path)
@@ -32,8 +34,8 @@ def generate_padded_data(feature_df: pd.DataFrame, df_window_sizes: pd.DataFrame
     
     # Now I need to fill in padded data... For each row in the df_data dataframe, I need to 
     # fill the padded_data array with the appropriate feature vector size. For example, some of the 
-    # features have a window size of 12, so I will take all 12 data points. In other features, the
-    # window size is 1, so I will have 11 zeros and 1 datapoint at the end. 
+    # features have a window size of 12, so I will take all 12 data points. In other features, if the
+    # window size is 1, I will have 11 zeros and 1 datapoint at the end. 
     
     
     for i in range(num_samples):
