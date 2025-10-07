@@ -1,10 +1,12 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-import torch 
-import torch.nn as nn 
-import torch.optim as optim  
+import torch
+import torch.nn as nn
+import torch.optim as optim
 from sklearn.preprocessing import StandardScaler
+from torch.utils.data import DataLoader, TensorDataset, random_split
+from loss_functions import RMSELoss
 
 
 def read_data(file_path:str) -> pd.DataFrame:
@@ -18,13 +20,16 @@ def format_feature_dataframe(df: pd.DataFrame) -> pd.DataFrame:
     df.index = pd.to_datetime(df.index)
     return df
 
-def create_feature_and_target_arrays(df: pd.DataFrame, target_col: str) -> tuple[pd.DataFrame, np.ndarray]:
+def create_feature_and_target_arrays(df: pd.DataFrame, 
+                                     target_col: str) -> tuple[pd.DataFrame, np.ndarray]:
     feature_cols : list[str] = [col for col in df.columns if col != target_col]
     X : pd.DataFrame = df[feature_cols]
     y : np.ndarray = df[target_col].to_numpy()
     return X, y
 
-def generate_padded_data(feature_df: pd.DataFrame, df_window_sizes: pd.DataFrame, target_vec:np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+def generate_padded_data(feature_df: pd.DataFrame, 
+                         df_window_sizes: pd.DataFrame, 
+                         target_vec:np.ndarray) -> tuple[np.ndarray, np.ndarray]:
     data_cols : list[str] = feature_df.columns.tolist()
     num_features : int = len(data_cols)
     window_sizes : dict[str, int] = df_window_sizes.set_index('feature')['window_size'].to_dict()
@@ -69,6 +74,114 @@ def create_masking_vector(feature_df: pd.DataFrame, df_window_sizes:pd.DataFrame
     # print(masking_matrix)
     return masking_matrix
 
+
+class MaskedLSTM(nn.Module):
+    def __init__(self, input_size: int, hidden_size: int = 64, num_layers: int = 2, dropout: float = 0.2):
+        super().__init__()
+        # PyTorch applies dropout only when num_layers > 1.
+        self.lstm = nn.LSTM(
+            input_size=input_size,
+            hidden_size=hidden_size,
+            num_layers=num_layers,
+            batch_first=True,
+            dropout=dropout if num_layers > 1 else 0.0,
+        )
+        self.dropout = nn.Dropout(dropout)
+        self.regressor = nn.Linear(hidden_size, 1)
+
+    def forward(self, x: torch.Tensor, mask: torch.Tensor) -> torch.Tensor:
+        """
+        x:     (batch, seq_len, input_size)
+        mask:  (batch, seq_len, input_size) entries of 0/1 indicating which inputs are valid.
+        """
+        masked_x = x * mask
+        outputs, _ = self.lstm(masked_x)
+        outputs = self.dropout(outputs)
+
+        valid_steps = (mask.sum(dim=-1) > 0).float()
+        pooled = (outputs * valid_steps.unsqueeze(-1)).sum(dim=1)
+        denom = valid_steps.sum(dim=1, keepdim=True).clamp(min=1.0)
+        pooled = pooled / denom
+        return self.regressor(pooled).squeeze(-1)
+
+
+def to_tensors(padded_data: np.ndarray, 
+               targets: np.ndarray, 
+               mask: np.ndarray) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+    """
+    Converts numpy arrays to torch tensors and aligns dimensions for model consumption.
+    """
+    # padded_data comes in as (seq_len, num_features, num_samples); transpose to (samples, seq_len, num_features).
+    tensor_data = torch.from_numpy(np.transpose(padded_data, (2, 0, 1))).float()
+    tensor_targets = torch.from_numpy(targets).float()
+    tensor_mask = torch.from_numpy(mask).float()
+    return tensor_data, tensor_targets, tensor_mask
+
+
+def build_dataloaders(
+    features: torch.Tensor,
+    targets: torch.Tensor,
+    train_frac: float = 0.8,
+    batch_size: int = 32,) -> tuple[DataLoader, DataLoader]:
+    dataset = TensorDataset(features, targets)
+    train_size = int(len(dataset) * train_frac)
+    val_size = len(dataset) - train_size
+    generator = torch.Generator().manual_seed(42)
+    train_dataset, val_dataset = random_split(dataset, [train_size, val_size], generator=generator)
+    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+    val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
+    return train_loader, val_loader
+
+
+def train_masked_lstm(
+    model: MaskedLSTM,
+    train_loader: DataLoader,
+    val_loader: DataLoader,
+    mask: torch.Tensor,
+    epochs: int = 50,
+    learning_rate: float = 1e-3,) -> MaskedLSTM:
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    model.to(device)
+    criterion = RMSELoss()
+    optimizer = optim.Adam(model.parameters(), lr=learning_rate)
+    mask = mask.to(device)
+
+    for epoch in range(epochs):
+        model.train()
+        train_loss = 0.0
+        for batch_inputs, batch_targets in train_loader:
+            batch_inputs = batch_inputs.to(device)
+            batch_targets = batch_targets.to(device)
+            mask_batch = mask.unsqueeze(0).expand(batch_inputs.size(0), -1, -1)
+
+            predictions = model(batch_inputs, mask_batch)
+            loss = criterion(predictions, batch_targets)
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
+            train_loss += loss.item() * batch_inputs.size(0)
+
+        train_loss /= len(train_loader.dataset)
+
+        model.eval()
+        val_loss = 0.0
+        with torch.no_grad():
+            for batch_inputs, batch_targets in val_loader:
+                batch_inputs = batch_inputs.to(device)
+                batch_targets = batch_targets.to(device)
+                mask_batch = mask.unsqueeze(0).expand(batch_inputs.size(0), -1, -1)
+
+                predictions = model(batch_inputs, mask_batch)
+                loss = criterion(predictions, batch_targets)
+                val_loss += loss.item() * batch_inputs.size(0)
+
+        val_loss /= len(val_loader.dataset)
+
+        if (epoch + 1) % 10 == 0 or epoch == 0:
+            print(f"Epoch {epoch + 1:3d} | Train Loss: {train_loss:.4f} | Val Loss: {val_loss:.4f}")
+
+    return model
+
 if __name__ == "__main__":
     
     df_fresno_agg: pd.DataFrame = read_data("Project/data/Fresno_Aggregate.csv")
@@ -98,5 +211,35 @@ if __name__ == "__main__":
     print(tgt_adj[0])    
 
     print("--- Masking Matrix ---")
-    print(create_masking_vector(df_features, best_window_vals))
     masking_matrix: np.ndarray = create_masking_vector(df_features, best_window_vals)
+    print(masking_matrix)
+
+    feature_tensor, target_tensor, mask_tensor = to_tensors(padded_data, tgt_adj, masking_matrix)
+    train_loader, val_loader = build_dataloaders(feature_tensor, target_tensor, train_frac=0.8, batch_size=16)
+
+    masked_lstm = MaskedLSTM(input_size=feature_tensor.size(-1), hidden_size=64, num_layers=2, dropout=0.2)
+    masked_lstm = train_masked_lstm(
+        model=masked_lstm,
+        train_loader=train_loader,
+        val_loader=val_loader,
+        mask=mask_tensor,
+        epochs=200,
+        learning_rate=1e-3,
+    )
+
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    masked_lstm.eval()
+    with torch.no_grad():
+        expanded_mask = mask_tensor.unsqueeze(0).expand(feature_tensor.size(0), -1, -1).to(device)
+        predictions = masked_lstm(feature_tensor.to(device), expanded_mask).cpu().numpy()
+   
+    plt.plot(np.arange(1, len(tgt_adj) + 1), tgt_adj, label="VF Rate (Actual)", linestyle="-.")
+    plt.plot(np.arange(1, len(predictions)+1), predictions, label="VF Rate (Predicted)", linestyle="-.")
+    plt.xlabel("Months")
+    plt.ylabel("VF Case Rate")
+    plt.title("Fresno LSTM VF Case Rate (Ind. Sliding Window)")
+    plt.grid()
+    plt.legend()
+    plt.show()    
+    
+    
