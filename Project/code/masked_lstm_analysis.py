@@ -7,6 +7,7 @@ import torch.optim as optim
 from sklearn.preprocessing import StandardScaler
 from torch.utils.data import DataLoader, TensorDataset, random_split
 from loss_functions import RMSELoss
+from datetime import datetime
 
 def read_data(file_path:str) -> pd.DataFrame:
     data: pd.DataFrame = pd.read_csv(file_path)
@@ -182,16 +183,29 @@ def train_masked_lstm(
     return model
 
 if __name__ == "__main__":
+    ###################
+    # Adjustable Data #
+    ###################
     
-    df_fresno_agg: pd.DataFrame = read_data("Project/data/Fresno_Aggregate.csv")
-    best_window_vals: pd.DataFrame = read_data("Project/data/fresno_lstm_best_feature_window_results.csv")
-    df_fresno: pd.DataFrame = format_feature_dataframe(df_fresno_agg)
-    print(" ---- Fresno Aggregate Data ---- ")
-    print(df_fresno)
+    county_name = "Fresno"
+    df_agg: pd.DataFrame = read_data(f"Project/data/{county_name}_Aggregate.csv")
+    best_window_vals: pd.DataFrame = read_data(f"Project/data/{county_name.lower()}_lstm_best_features_window_results.csv")
+    learning_rate = 1e-3
+    epochs = 200
+    train_frac = 0.80
+    hidden_size = 64
+    save_fig = True 
+    ################
+    # Do Not Touch #
+    ################
+    
+    df_data: pd.DataFrame = format_feature_dataframe(df_agg)
+    print(f" ---- {county_name} Aggregate Data ---- ")
+    print(df_data)
     print(" ---- Best Window Values ---- ")
     print(best_window_vals)
     
-    df_features, target_vec = create_feature_and_target_arrays(df_fresno, target_col='VFRate')
+    df_features, target_vec = create_feature_and_target_arrays(df_data, target_col='VFRate')
     print(" ---- Feature DataFrame ---- ")
     print(df_features)
     print(" ---- Target Vector ---- ")
@@ -213,18 +227,18 @@ if __name__ == "__main__":
     masking_matrix: np.ndarray = create_masking_vector(df_features, best_window_vals)
     print(masking_matrix)
 
-    train_frac:float = 0.8
     feature_tensor, target_tensor, mask_tensor = to_tensors(padded_data, tgt_adj, masking_matrix)
-    train_loader, val_loader = build_dataloaders(feature_tensor, target_tensor, train_frac=train_frac, batch_size=16)
+    train_loader, val_loader = build_dataloaders(feature_tensor, target_tensor, 
+                                                 train_frac=train_frac, batch_size=16)
 
-    masked_lstm = MaskedLSTM(input_size=feature_tensor.size(-1), hidden_size=64, num_layers=2, dropout=0.2)
+    masked_lstm = MaskedLSTM(input_size=feature_tensor.size(-1), hidden_size=hidden_size, num_layers=2, dropout=0.2)
     masked_lstm = train_masked_lstm(
         model=masked_lstm,
         train_loader=train_loader,
         val_loader=val_loader,
         mask=mask_tensor,
-        epochs=200,
-        learning_rate=1e-3,
+        epochs=epochs,
+        learning_rate=learning_rate,
     )
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -239,9 +253,27 @@ if __name__ == "__main__":
     plt.axvline(x = split_idx, color='r', linestyle='--')
     plt.xlabel("Months")
     plt.ylabel("VF Case Rate")
-    plt.title("Fresno LSTM VF Case Rate (Ind. Sliding Window)")
+    plt.title(f"{county_name} LSTM VF Case Rate (Ind. Sliding Window) \nlr = {learning_rate}, hl = {hidden_size}, train/test = {train_frac}|{1-train_frac}")
     plt.grid()
     plt.legend()
     plt.show()    
+    
+    if save_fig:
+        print(" ---- Saving Image ----")
+        plt.figure(figsize=(12, 6))
+        split_idx = np.floor(len(predictions) * train_frac)
+        plt.plot(np.arange(1, len(tgt_adj) + 1), tgt_adj, label="VF Rate (Actual)", linestyle="-.")
+        plt.plot(np.arange(1, len(predictions)+1), predictions, label="VF Rate (Predicted)", linestyle="-.")
+        plt.axvline(x = split_idx, color='r', linestyle='--')
+        plt.xlabel("Months")
+        plt.ylabel("VF Case Rate")
+        plt.title(f"{county_name} LSTM VF Case Rate (Ind. Sliding Window) \nlr = {learning_rate}, hl = {hidden_size}, train/test = {train_frac}|{1-train_frac}")
+        plt.grid()
+        plt.legend()
+        plt.tight_layout()
+        img_str = f"Project/plots/lstm/{county_name}_VF_Sliding_Window_plot_{datetime.today()}.png"
+        plt.savefig(img_str)
+        print(f"Image saved to: {img_str}")
+    print("---- Analysis Complete ----")
     
     

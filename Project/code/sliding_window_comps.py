@@ -175,7 +175,7 @@ if __name__ == "__main__":
      county_name = all_args[1] 
      print(f" ---- Input Arg Detected - County set to {county_name} ----")
   else:
-     print(f" ---- No Input Args - Default Set To {county_name} ----")
+     print(f" ---- No Input Args- Default Set To {county_name} ----")
   
   today_val = datetime.now()
   timestamp_str = today_val.strftime("%Y-%m-%d_%H-%M-%S")
