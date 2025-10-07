@@ -214,8 +214,9 @@ if __name__ == "__main__":
     masking_matrix: np.ndarray = create_masking_vector(df_features, best_window_vals)
     print(masking_matrix)
 
+    train_frac:float = 0.8
     feature_tensor, target_tensor, mask_tensor = to_tensors(padded_data, tgt_adj, masking_matrix)
-    train_loader, val_loader = build_dataloaders(feature_tensor, target_tensor, train_frac=0.8, batch_size=16)
+    train_loader, val_loader = build_dataloaders(feature_tensor, target_tensor, train_frac=train_frac, batch_size=16)
 
     masked_lstm = MaskedLSTM(input_size=feature_tensor.size(-1), hidden_size=64, num_layers=2, dropout=0.2)
     masked_lstm = train_masked_lstm(
@@ -233,8 +234,10 @@ if __name__ == "__main__":
         expanded_mask = mask_tensor.unsqueeze(0).expand(feature_tensor.size(0), -1, -1).to(device)
         predictions = masked_lstm(feature_tensor.to(device), expanded_mask).cpu().numpy()
    
+    split_idx = np.floor(len(predictions) * train_frac)
     plt.plot(np.arange(1, len(tgt_adj) + 1), tgt_adj, label="VF Rate (Actual)", linestyle="-.")
     plt.plot(np.arange(1, len(predictions)+1), predictions, label="VF Rate (Predicted)", linestyle="-.")
+    plt.axvline(x = split_idx, color='r', linestyle='--')
     plt.xlabel("Months")
     plt.ylabel("VF Case Rate")
     plt.title("Fresno LSTM VF Case Rate (Ind. Sliding Window)")
