@@ -8,7 +8,6 @@ from sklearn.preprocessing import StandardScaler
 from torch.utils.data import DataLoader, TensorDataset, random_split
 from loss_functions import RMSELoss
 
-
 def read_data(file_path:str) -> pd.DataFrame:
     data: pd.DataFrame = pd.read_csv(file_path)
     return data
