@@ -171,8 +171,8 @@ if __name__ == "__main__":
   
   # Functionality for command line args
   all_args = sys.argv 
-  if len(all_args) == 2:
-     county_name = all_args[1]
+  if len(all_args) == 2 and all_args[1] in ["Kern", "Fresno"]:
+     county_name = all_args[1] 
      print(f" ---- Input Arg Detected - County set to {county_name} ----")
   else:
      print(f" ---- No Input Args - Default Set To {county_name} ----")
