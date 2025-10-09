@@ -32,3 +32,20 @@ hidden_size   = 64
 num_layers    = 2
 dropout       = 0.2
 epochs        = 300
+```
+
+## Advanced Features
+With the addition of bigger datafiles and more feature columns, we can determine the optimal sliding window length for each individual component. In `Project/code/sliding_window_comps.py`, you can run the script on your file via the command line or through the script by editing within the 
+
+```python 
+# Edit Here
+path = "your_path"
+#parameters
+...
+```
+Or run via the command line for a particular county (right now either {Kern, Fresno} ) by
+
+```shell
+> python3 Project/code/sliding_window_comps.py Fresno
+```
+
