@@ -187,12 +187,12 @@ if __name__ == "__main__":
     # Adjustable Data #
     ###################
     
-    county_name = "Fresno"
+    county_name = "Kern"
     df_agg: pd.DataFrame = read_data(f"Project/data/{county_name}_Aggregate.csv")
     best_window_vals: pd.DataFrame = read_data(f"Project/data/{county_name.lower()}_lstm_best_features_window_results.csv")
     learning_rate = 1e-3
     epochs = 200
-    train_frac = 0.80
+    train_frac = 0.8
     hidden_size = 64
     save_fig = True 
     ################
