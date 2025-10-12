@@ -195,7 +195,7 @@ if __name__ == "__main__":
 
   # now what we want to do is loop through each feature and run the LSTM on each feature individually with a list of
   # sliding window sizes and see which feature and sliding window size gives us the best performance
-  sliding_window_sizes = [1, 3, 6, 8, 12]
+  sliding_window_sizes: list[int] = [x for x in range(1, 13)]
   results = []
   scaler_X = MinMaxScaler()
   scaler_y = MinMaxScaler()

@@ -190,7 +190,7 @@ if __name__ == "__main__":
     county_name = "Kern"
     df_agg: pd.DataFrame = read_data(f"Project/data/{county_name}_Aggregate.csv")
     best_window_vals: pd.DataFrame = read_data(f"Project/data/{county_name.lower()}_lstm_best_features_window_results.csv")
-    learning_rate = 1e-3
+    learning_rate = 1e-2
     epochs = 200
     train_frac = 0.8
     hidden_size = 64
