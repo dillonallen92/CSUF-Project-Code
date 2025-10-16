@@ -212,13 +212,15 @@ if __name__ == "__main__":
   # epochs               = 300
   # weight_decay         = 1e-5
   
-  lstm_params     = config_file_parser(config_path=config_file_path)
+  lstm_params, _  = config_file_parser(config_path=config_file_path)
   hidden_size     = int(lstm_params["hidden_size"])
   num_layers      = int(lstm_params["num_layers"])
   dropout         = float(lstm_params["dropout"])
   learning_rate   = float(lstm_params["learning_rate"])
   epochs          = int(lstm_params["epochs"])
   weight_decay    = float(lstm_params["weight_decay"])
+  train_frac      = float(lstm_params["train_frac"])
+  test_frac       = 1 - train_frac
   
   
 
@@ -227,7 +229,7 @@ if __name__ == "__main__":
   for feature_index, feature in enumerate(feature_columns):
     # generate the feature vector and target vector
     for window_size in sliding_window_sizes:
-      X_train, X_test, y_train, y_test = preprocess_data(X, y, feature_index, window_size)
+      X_train, X_test, y_train, y_test = preprocess_data(X, y, feature_index, window_size, test_size = test_frac)
       
       # scale the data
       X_train_scaled, X_test_scaled, y_train_scaled, y_test_scaled = scale_data(X_train, X_test, y_train, y_test)
