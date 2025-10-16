@@ -1,11 +1,16 @@
 import configparser
 
-file_path = "Project/configs/masked_lstm_config.ini"
-config = configparser.ConfigParser()
+def config_file_parser(config_path: str) -> dict[str, str]:
 
-config.read(file_path)
-lstm_params = config['lstm_params']
-for k,v in lstm_params.items():
-  print(f"{k} : {v}")
+  config = configparser.ConfigParser()
+  config.read(config_path)
+  lstm_params = config['lstm_params']
+  
+  return lstm_params
 
-
+if __name__ == "__main__":
+  file_path = "Project/configs/masked_lstm_config.ini"
+  
+  lstm_params = config_file_parser(file_path)
+  for k,v in lstm_params.items():
+    print(f"{k} : {v}")

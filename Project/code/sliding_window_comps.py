@@ -9,6 +9,7 @@ from loss_functions import RMSELoss
 import torch.optim as optim 
 from datetime import datetime
 import sys 
+from config_file_parser import config_file_parser
 
 def preprocess_data(X, y, feature_index, window_size, test_size=0.2):
   # Select the feature column
@@ -164,6 +165,7 @@ if __name__ == "__main__":
   #    Change Here   #
   ####################
   county_name = "Fresno" # change this between Fresno and Kern
+  config_file_path = "Project/configs/masked_lstm_config.ini"
   
   ####################
   #  DO NOT CHANGE   #
@@ -203,12 +205,22 @@ if __name__ == "__main__":
   # below are model parameters 
   # model parameters
   # lookback has been removed because we are varying the sliding window size
-  hidden_size          = 32
-  num_layers           = 2
-  dropout              = 0.2
-  learning_rate        = 0.001
-  epochs               = 300
-  weight_decay         = 1e-5
+  # hidden_size          = 32
+  # num_layers           = 2
+  # dropout              = 0.2
+  # learning_rate        = 0.001
+  # epochs               = 300
+  # weight_decay         = 1e-5
+  
+  lstm_params     = config_file_parser(config_path=config_file_path)
+  hidden_size     = int(lstm_params["hidden_size"])
+  num_layers      = int(lstm_params["num_layers"])
+  dropout         = float(lstm_params["dropout"])
+  learning_rate   = float(lstm_params["learning_rate"])
+  epochs          = int(lstm_params["epochs"])
+  weight_decay    = float(lstm_params["weight_decay"])
+  
+  
 
   criterion = RMSELoss()
   print("---- Computing Sliding Window Values ----")
