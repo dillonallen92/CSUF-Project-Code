@@ -8,6 +8,7 @@ from sklearn.preprocessing import StandardScaler
 from torch.utils.data import DataLoader, TensorDataset, random_split
 from loss_functions import RMSELoss
 from datetime import datetime
+from config_file_parser import config_file_parser
 
 def read_data(file_path:str) -> pd.DataFrame:
     data: pd.DataFrame = pd.read_csv(file_path)
@@ -133,17 +134,12 @@ def build_dataloaders(
     return train_loader, val_loader
 
 
-def train_masked_lstm(
-    model: MaskedLSTM,
-    train_loader: DataLoader,
-    val_loader: DataLoader,
-    mask: torch.Tensor,
-    epochs: int = 50,
-    learning_rate: float = 1e-3,) -> MaskedLSTM:
+def train_masked_lstm(model: MaskedLSTM, train_loader: DataLoader, val_loader: DataLoader, mask: torch.Tensor,
+    epochs: int = 50, learning_rate: float = 1e-3, weight_decay = 1e-5) -> MaskedLSTM:
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model.to(device)
     criterion = RMSELoss()
-    optimizer = optim.Adam(model.parameters(), lr=learning_rate)
+    optimizer = optim.Adam(model.parameters(), lr=learning_rate, weight_decay=weight_decay)
     mask = mask.to(device)
 
     for epoch in range(epochs):
@@ -189,16 +185,25 @@ if __name__ == "__main__":
     
     county_name = "Kern"
     df_agg: pd.DataFrame = read_data(f"Project/data/{county_name}_Aggregate.csv")
-    best_window_vals: pd.DataFrame = read_data(f"Project/data/{county_name.lower()}_lstm_best_features_window_results.csv")
-    learning_rate = 1e-2
-    epochs = 200
-    train_frac = 0.8
-    hidden_size = 64
-    save_fig = True 
+    best_window_vals: pd.DataFrame = read_data(f"Project/data/Kern_best_sliding_vals_2025-10-16_10-12-04.csv")
+    config_file_path = "Project/configs/masked_lstm_config.ini"
+    
     ################
     # Do Not Touch #
     ################
+    print(f"County Input: {county_name}")
+    print(" ---- Parsing Config File ----")
+    lstm_params, file_params = config_file_parser(config_path=config_file_path)
+    hidden_size     = int(lstm_params["hidden_size"])
+    num_layers      = int(lstm_params["num_layers"])
+    dropout         = float(lstm_params["dropout"])
+    learning_rate   = float(lstm_params["learning_rate"])
+    epochs          = int(lstm_params["epochs"])
+    weight_decay    = float(lstm_params["weight_decay"])
+    train_frac      = float(lstm_params["train_frac"])
+    save_fig        = bool(file_params["save_fig"])
     
+    print("---- Config File Processed ----")
     df_data: pd.DataFrame = format_feature_dataframe(df_agg)
     print(f" ---- {county_name} Aggregate Data ---- ")
     print(df_data)
@@ -231,15 +236,9 @@ if __name__ == "__main__":
     train_loader, val_loader = build_dataloaders(feature_tensor, target_tensor, 
                                                  train_frac=train_frac, batch_size=16)
 
-    masked_lstm = MaskedLSTM(input_size=feature_tensor.size(-1), hidden_size=hidden_size, num_layers=2, dropout=0.2)
-    masked_lstm = train_masked_lstm(
-        model=masked_lstm,
-        train_loader=train_loader,
-        val_loader=val_loader,
-        mask=mask_tensor,
-        epochs=epochs,
-        learning_rate=learning_rate,
-    )
+    masked_lstm = MaskedLSTM(input_size=feature_tensor.size(-1), hidden_size=hidden_size, num_layers=num_layers, dropout=dropout)
+    masked_lstm = train_masked_lstm(model=masked_lstm, train_loader=train_loader, val_loader=val_loader,
+        mask=mask_tensor, epochs=epochs, learning_rate=learning_rate, weight_decay= weight_decay)
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     masked_lstm.eval()
