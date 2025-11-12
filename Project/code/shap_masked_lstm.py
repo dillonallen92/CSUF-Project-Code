@@ -80,7 +80,6 @@ def create_masking_vector(feature_df: pd.DataFrame, df_window_sizes:pd.DataFrame
 class MaskedLSTM(nn.Module):
     def __init__(self, input_size: int, hidden_size: int = 64, num_layers: int = 2, dropout: float = 0.2):
         super().__init__()
-        # PyTorch applies dropout only when num_layers > 1.
         self.lstm = nn.LSTM(
             input_size=input_size,
             hidden_size=hidden_size,
@@ -250,11 +249,6 @@ if __name__ == "__main__":
     # =========================
     # SHAP analysis (append-only)
     # =========================
-    try:
-        import shap
-    except ImportError:
-        raise SystemExit("Please install SHAP first: pip install shap")
-
     # Model eval device (safe even if defined earlier)
     masked_lstm.eval()
 
@@ -321,22 +315,21 @@ if __name__ == "__main__":
     plt.barh([_feature_names[i] for i in _idxs][::-1], _per_feature_importance[_idxs][::-1])
     plt.title("Global feature importance (mean |SHAP| over time)")
     plt.tight_layout()
-    plt.show()
 
     plt.figure()
     plt.imshow(_example_shap.T, aspect="auto", interpolation="nearest")
     plt.yticks(range(_F), _feature_names)
     plt.xlabel("Time step within window (oldest → newest)")
-    plt.title("SHAP values (example window): contribution per (time, feature)")
+    plt.title("SHAP values: contribution per (time, feature)")
     plt.colorbar(label="SHAP value")
     plt.tight_layout()
-    plt.show()
         
     # ----------------------
     #     END SHAP Code
     # ----------------------
    
     split_idx = np.floor(len(predictions) * train_frac)
+    plt.figure()
     plt.plot(np.arange(1, len(tgt_adj) + 1), tgt_adj, label="VF Rate (Actual)", linestyle="-.")
     plt.plot(np.arange(1, len(predictions)+1), predictions, label="VF Rate (Predicted)", linestyle="-.")
     plt.axvline(x = split_idx, color='r', linestyle='--')
@@ -345,8 +338,7 @@ if __name__ == "__main__":
     plt.title(f"{county_name} LSTM VF Case Rate (Ind. Sliding Window) \nlr = {learning_rate}, hl = {hidden_size}, train/test = {train_frac}|{1-train_frac}")
     plt.grid()
     plt.legend()
-    plt.show()    
-    
+    plt.show() 
     if save_fig:
         print(" ---- Saving Image ----")
         plt.figure(figsize=(12, 6))
